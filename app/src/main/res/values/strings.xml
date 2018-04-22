@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Rx</string>
+    <string name="monthly_listeners">Monthly listeners: %1$s</string>
+</resources>
