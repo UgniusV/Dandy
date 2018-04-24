@@ -12,8 +12,13 @@ import com.rx.ugnius.rx.artist.model.entities.Track
 import com.rx.ugnius.rx.secondOrNull
 import kotlinx.android.synthetic.main.track_cell_entry.view.*
 
-class TracksAdapter(private val entries: List<Track>, context: Context) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
+class TracksAdapter(context: Context) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
 
+    var entries = listOf<Track>()
+    set(value) {
+        field = value
+        notifyDataSetChanged()
+    }
     private val inflater = LayoutInflater.from(context)
     private val requestManager = Glide.with(context)
 

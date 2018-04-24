@@ -1,15 +1,13 @@
-package com.rx.ugnius.rx.api
+package com.rx.ugnius.rx.artist.model
 
 import com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import com.rx.ugnius.rx.api.entities.Album
-import com.rx.ugnius.rx.api.entities.Artist
-import com.rx.ugnius.rx.api.entities.Track
-import com.rx.ugnius.rx.api.entities.deserializers.AlbumsDeserializer
-import com.rx.ugnius.rx.api.entities.deserializers.ArtistDeserializer
-import com.rx.ugnius.rx.api.entities.deserializers.TracksDeserializer
-import com.rx.ugnius.rx.artist.TracksAdapter
+import com.rx.ugnius.rx.artist.model.entities.Album
+import com.rx.ugnius.rx.artist.model.entities.Artist
+import com.rx.ugnius.rx.artist.model.entities.Track
+import com.rx.ugnius.rx.artist.model.entities.deserializers.AlbumsDeserializer
+import com.rx.ugnius.rx.artist.model.entities.deserializers.TracksDeserializer
 import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -21,7 +19,7 @@ class RetrofitConfigurator private constructor() {
     companion object {
 
 
-        private const val ACCESS_TOKEN = " Bearer BQDfOtjgZ7fmk0bRavGWN8hppepomD3kztcTcxZ7yLOl0HTF9V-MrSDGpbYuBWKR4RJym9hguCMQrRCIsceLwFHYEEK-t70brhqQ6Dj9djZcErB507sKnk-AGzobxTCEQ4b0zEBgb0BdVy5jeFYpyFBJW8GC"
+        private const val ACCESS_TOKEN = " Bearer BQDbB1wKmBkblyAm33YFi9H9PUqcuGarOBpJ5Suy9kzzS31vi_3pp7G9w9FX8HFeuzmiZdcauX2SGixDPR7FnMpNrPe_NoCEOX7GKrXRuFvRwM3cw4-Haqut8N07ywYIjpsBpsR25PMygOIWFGAUgU5Giek4"
 
         fun configure(): Retrofit = with(Retrofit.Builder()) {
             baseUrl("https://api.spotify.com")
@@ -29,7 +27,6 @@ class RetrofitConfigurator private constructor() {
             addConverterFactory(createGsonConverterFactory())
             client(createOkHttpClient())
             build()
-
         }
 
         private fun createOkHttpClient() = with(OkHttpClient().newBuilder()) {
@@ -41,7 +38,6 @@ class RetrofitConfigurator private constructor() {
             }
             build()
         }
-        //sonBuilder.registerTypeAdapter(ArrayList<Track>()::class.java, TrackMapper.TracksListDeserializer())
 
         private fun createGsonConverterFactory(): GsonConverterFactory {
             val trackListType = TypeToken.getParameterized(List::class.java, Track::class.java).type

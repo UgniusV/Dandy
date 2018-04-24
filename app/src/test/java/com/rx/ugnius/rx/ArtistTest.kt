@@ -1,27 +1,19 @@
 package com.rx.ugnius.rx
 
 import com.rx.ugnius.rx.artist.ArtistPresenter
-import com.rx.ugnius.rx.artist.View
-import com.rx.ugnius.rx.artist.model.entities.Artist
+import com.rx.ugnius.rx.artist.view.View
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
 import io.reactivex.internal.schedulers.ExecutorScheduler
 import io.reactivex.plugins.RxJavaPlugins
 import org.junit.Test
 import org.mockito.Mockito.*
-import org.junit.Assert.*
 import java.util.concurrent.TimeUnit
 import io.reactivex.android.plugins.RxAndroidPlugins
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 
-
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
-class ExampleUnitTest {
+class ArtistTest {
 
     @Test
     fun addition_isCorrect() {

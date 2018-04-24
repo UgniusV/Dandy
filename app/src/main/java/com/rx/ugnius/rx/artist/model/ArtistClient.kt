@@ -1,15 +1,15 @@
-package com.rx.ugnius.rx.api
+package com.rx.ugnius.rx.artist.model
 
-import com.rx.ugnius.rx.api.entities.Album
-import com.rx.ugnius.rx.api.entities.Artist
-import com.rx.ugnius.rx.api.entities.Track
+import com.rx.ugnius.rx.artist.model.entities.Album
+import com.rx.ugnius.rx.artist.model.entities.Artist
+import com.rx.ugnius.rx.artist.model.entities.Track
 import io.reactivex.Observable
 import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface APIClient {
+interface ArtistClient {
 
     @GET("v1/artists/{artistId}")
     fun getArtist(@Path("artistId") artistId: String): Single<Artist>

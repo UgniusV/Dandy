@@ -6,7 +6,6 @@ import android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM
 import android.graphics.drawable.GradientDrawable
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import com.rx.ugnius.rx.artist.view.ArtistPagerAdapter.Companion.ARTIST_PAGER_ENTRIES_COUNT
 import android.graphics.Color.WHITE
 import android.support.v4.content.ContextCompat
 import android.support.v4.graphics.ColorUtils
@@ -19,6 +18,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.rx.ugnius.rx.R
+import com.rx.ugnius.rx.adjustColorLightness
 import com.rx.ugnius.rx.artist.ArtistPresenter
 import com.rx.ugnius.rx.artist.model.entities.Album
 import com.rx.ugnius.rx.artist.model.entities.Artist
@@ -30,6 +30,14 @@ import kotlinx.android.synthetic.main.artist_header.*
 
 class ArtistActivity : AppCompatActivity(), View {
 
+
+    private companion object {
+        const val ARTIST_PAGER_ENTRIES_COUNT = 1
+    }
+
+    //todo first call calls lambda, then remebers the result and subsequent calls return that returns
+    private val tracksAdapter by lazy { TracksAdapter(this) }
+    private val linearLayoutManager by lazy { LinearLayoutManager(this) }
     private val presenter = ArtistPresenter(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,6 +45,7 @@ class ArtistActivity : AppCompatActivity(), View {
         setContentView(R.layout.view_artist)
         artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
         artistPager.adapter = ArtistPagerAdapter(this)
+        artistPagerTabs.setupWithViewPager(artistPager)
         presenter.queryArtist("6rYogEVj60BCIsLukpAnwr")
         presenter.queryArtistAlbums("6rYogEVj60BCIsLukpAnwr")
         presenter.queryArtistTopTracks("6rYogEVj60BCIsLukpAnwr")
@@ -56,7 +65,13 @@ class ArtistActivity : AppCompatActivity(), View {
                         background.setImageBitmap(resource)
                         resource.extractDominantSwatch()
                                 .subscribeBy(
-                                        onSuccess = { artistPager.background = createWhiteBlendedGradient(it.rgb) },
+                                        onSuccess = {
+                                            val originalColor = it.rgb
+                                            val adjustedColor = adjustColorLightness(color = it.rgb, lightness = 0.3F)
+                                            artistPager.background = createWhiteBlendedGradient(originalColor)
+                                            artistPagerTabs.setSelectedTabIndicatorColor(adjustedColor);
+                                            artistPagerTabs.setTabTextColors(originalColor, adjustedColor)
+                                        },
                                         onComplete = { artistPager.background = createWhiteBlendedGradient(WHITE) }
                                 )
 
@@ -66,13 +81,12 @@ class ArtistActivity : AppCompatActivity(), View {
 
     private fun createWhiteBlendedGradient(blendColor: Int): GradientDrawable {
         val transparentWhite = ContextCompat.getColor(applicationContext, R.color.transparentWhite)
-        val blendedColor = ColorUtils.blendARGB(transparentWhite, blendColor, 0.4F)
+        val blendedColor = ColorUtils.blendARGB(transparentWhite, blendColor, 0.2F)
         return GradientDrawable(TOP_BOTTOM, intArrayOf(blendedColor, transparentWhite))
     }
 
     override fun displayArtistTopTracks(tracks: List<Track>) {
-//        tracksRecycler.layoutManager = LinearLayoutManager(this)
-//        tracksRecycler.adapter = TracksAdapter(tracks, this)
+        tracksAdapter.entries = tracks
     }
 
     override fun displayArtistAlbums(albums: List<Album>) {
@@ -83,13 +97,10 @@ class ArtistActivity : AppCompatActivity(), View {
         //todo show lottie error
     }
 
-    class ArtistPagerAdapter(private val context: Context) : PagerAdapter() {
+    private inner class ArtistPagerAdapter(context: Context) : PagerAdapter() {
 
         private val inflater = LayoutInflater.from(context)
 
-        companion object {
-            const val ARTIST_PAGER_ENTRIES_COUNT = 1
-        }
 
         override fun getCount() = ARTIST_PAGER_ENTRIES_COUNT
 
@@ -99,8 +110,8 @@ class ArtistActivity : AppCompatActivity(), View {
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
             val view = inflater.inflate(R.layout.artist_recycler, container, false)
             (view as? RecyclerView)?.let {
-                it.layoutManager = LinearLayoutManager(context)
-                it.adapter
+                it.layoutManager = linearLayoutManager
+                it.adapter = tracksAdapter
             }
             container.addView(view)
             return view
@@ -111,7 +122,7 @@ class ArtistActivity : AppCompatActivity(), View {
         }
 
         override fun getPageTitle(position: Int) = when (position) {
-            0 -> "first page"
+            0 -> "Songs"
             1 -> "second page"
             2 -> "third page"
             else -> throw IllegalArgumentException("Invalid item count was specified")
