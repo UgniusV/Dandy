@@ -6,7 +6,7 @@ import com.rx.ugnius.rx.artist.model.entities.Track
 
 interface View {
         fun displayArtistInfo(artist: Artist)
-        fun displayArtistTopTracks(tracks: List<Track>)
+        fun displayArtistTracks(tracks: ArrayList<Track>)
         fun displayArtistAlbums(albums: List<Album>)
         fun showError(message: String)
 }

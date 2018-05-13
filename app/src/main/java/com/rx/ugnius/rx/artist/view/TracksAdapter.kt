@@ -14,9 +14,10 @@ import kotlinx.android.synthetic.main.track_cell_entry.view.*
 
 class TracksAdapter(context: Context) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
 
-    var entries = listOf<Track>()
+    var entries = ArrayList<Track>()
     set(value) {
-        field = value
+        entries.clear()
+        entries.addAll(value)
         notifyDataSetChanged()
     }
     private val inflater = LayoutInflater.from(context)
@@ -34,7 +35,7 @@ class TracksAdapter(context: Context) : RecyclerView.Adapter<TracksAdapter.ViewH
         with(holder.itemView) {
             val entry = entries[position]
             trackIndex.text = (position + 1).toString()
-            entry.album.images.secondOrNull()?.url?.let { requestManager.load(it).into(trackImage) }
+            entry.album?.images?.secondOrNull()?.url?.let { requestManager.load(it).into(trackImage) }
             trackTitle.text = entry.name
             trackArtist.text = entry.artists.map { it.name }.reduce { acc, name -> "$acc $name" }
             trackDuration.text = DateUtils.formatElapsedTime(entry.duration / 1000)

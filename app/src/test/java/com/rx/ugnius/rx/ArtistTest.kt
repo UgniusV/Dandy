@@ -25,7 +25,7 @@ class ArtistTest {
         artistPresenter.queryArtistTopTracks("6rYogEVj60BCIsLukpAnwr", "ES")
         verify(viewMock, timeout(1000)).displayArtistAlbums(ArgumentMatchers.anyList())
         verify(viewMock, timeout(1000)).displayArtistInfo(any())
-        verify(viewMock, timeout(1000)).displayArtistTopTracks(ArgumentMatchers.anyList())
+        verify(viewMock, timeout(1000)).displayArtistTracks(ArgumentMatchers.anyList())
     }
 
     private fun switchScheduler() {

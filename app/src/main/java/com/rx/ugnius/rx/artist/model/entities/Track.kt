@@ -3,7 +3,7 @@ package com.rx.ugnius.rx.artist.model.entities
 import com.google.gson.annotations.SerializedName
 
 class Track(
-        val album: Album,
+        var album: Album?,
         val artists: List<Artist>,
         @SerializedName("duration_ms")
         val duration: Long,

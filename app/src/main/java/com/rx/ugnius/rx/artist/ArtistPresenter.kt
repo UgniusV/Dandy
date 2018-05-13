@@ -2,9 +2,13 @@ package com.rx.ugnius.rx.artist
 
 import com.rx.ugnius.rx.artist.model.ArtistClient
 import com.rx.ugnius.rx.artist.model.RetrofitConfigurator
+import com.rx.ugnius.rx.artist.model.entities.Album
+import com.rx.ugnius.rx.artist.model.entities.Track
 import com.rx.ugnius.rx.artist.view.View
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
+import java.util.*
 
 class ArtistPresenter(private val artistsView: View) {
 
@@ -19,28 +23,30 @@ class ArtistPresenter(private val artistsView: View) {
                 )
     }
 
-    fun queryArtistTopTracks(artistId: String, market: String = "ES") {
+    fun queryTopTracks(artistId: String, market: String) {
         artistClient.getArtistTopTracks(artistId, market)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
-                        onNext = { artistsView.displayArtistTopTracks(it) },
+                        onSuccess = { artistsView.displayArtistTracks(ArrayList(it)) },
                         onError = { it.message?.let { artistsView.showError(it) } }
                 )
     }
 
-
-    fun queryArtistAlbums(artistId: String) {
-        artistClient.getArtistAlbums(artistId)
+    fun getAlbumsOberservable(artistId: String): Single<List<Track>> {
+        var album: Album? = null
+        return artistClient.getArtistAlbums(artistId)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy(
-                        onNext = {
-                            artistsView.displayArtistAlbums(it)
-                        },
-                        onError = { it.message?.let { artistsView.showError(it) } }
-                )
+                .doOnNext { artistsView.displayArtistAlbums(it) }
+                .flatMapIterable { it }
+                .concatMap {
+                    album = it
+                    artistClient.getAlbumsTracks(it.id)
+                }
+                .flatMapIterable { it }
+                .map { it.also { it.album = album } }
+                .toList()
+                .cache()
+                .observeOn(AndroidSchedulers.mainThread())
     }
 
-    fun queryAllSongs() {
-
-    }
 }

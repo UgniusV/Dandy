@@ -19,7 +19,7 @@ class RetrofitConfigurator private constructor() {
     companion object {
 
 
-        private const val ACCESS_TOKEN = " Bearer BQDbB1wKmBkblyAm33YFi9H9PUqcuGarOBpJ5Suy9kzzS31vi_3pp7G9w9FX8HFeuzmiZdcauX2SGixDPR7FnMpNrPe_NoCEOX7GKrXRuFvRwM3cw4-Haqut8N07ywYIjpsBpsR25PMygOIWFGAUgU5Giek4"
+        private const val ACCESS_TOKEN = " Bearer BQAaukJHsYUai6VW2XDe33LZl1QczfM5QGUNl5sIWPTs7G0Ap-oPaZXR9wdkKJ-keNiWRI977I9uAjq4G0qBkTp5Z6KHtwecBGyNiuDaPE-jirxlSuJU8MXiwBIMus3nkoJcq_Q-ipMPS_CVwqrLHs1kuv8J"
 
         fun configure(): Retrofit = with(Retrofit.Builder()) {
             baseUrl("https://api.spotify.com")

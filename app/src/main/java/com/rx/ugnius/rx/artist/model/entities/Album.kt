@@ -5,7 +5,7 @@ class Album(
         val artists: List<Artist>,
         val genres: List<String>,
         val id: String,
-        val images: List<Image>,
+        var images: List<Image>,
         val name: String,
         val releaseDate: String
 )
