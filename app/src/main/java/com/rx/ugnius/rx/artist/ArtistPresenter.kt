@@ -32,6 +32,15 @@ class ArtistPresenter(private val artistsView: View) {
                 )
     }
 
+    fun querySimilarArtists(artistId: String) {
+        artistClient.getArtistRelatedArtists(artistId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeBy(
+                        onSuccess = { artistsView.displaySimilarArtists(it) },
+                        onError = { it.message?.let { artistsView.showError(it) } }
+                )
+    }
+
     fun getAlbumsOberservable(artistId: String): Single<List<Track>> {
         var album: Album? = null
         return artistClient.getArtistAlbums(artistId)

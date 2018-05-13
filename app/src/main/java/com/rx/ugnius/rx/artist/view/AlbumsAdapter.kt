@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.rx.ugnius.rx.R
 import com.rx.ugnius.rx.artist.model.entities.Album
+import com.rx.ugnius.rx.secondOrNull
 import kotlinx.android.synthetic.main.album_cell_entry.view.*
 
 class AlbumsAdapter(context: Context) : RecyclerView.Adapter<AlbumsAdapter.ViewHolder>() {
@@ -31,7 +32,7 @@ class AlbumsAdapter(context: Context) : RecyclerView.Adapter<AlbumsAdapter.ViewH
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val entry = entries[position]
         with(holder.itemView) {
-            glide.load("https://i.scdn.co/image/58df2004e969d773dd30216a9efda15746d991e9").into(artwork)
+            entry.images.secondOrNull()?.url?.let { glide.load(it).into(artwork) }
             title.text = entry.name
             releaseDate.text = entry.releaseDate
 

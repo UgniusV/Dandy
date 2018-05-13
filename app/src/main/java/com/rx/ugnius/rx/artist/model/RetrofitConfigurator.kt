@@ -7,6 +7,7 @@ import com.rx.ugnius.rx.artist.model.entities.Album
 import com.rx.ugnius.rx.artist.model.entities.Artist
 import com.rx.ugnius.rx.artist.model.entities.Track
 import com.rx.ugnius.rx.artist.model.entities.deserializers.AlbumsDeserializer
+import com.rx.ugnius.rx.artist.model.entities.deserializers.ArtistDeserializer
 import com.rx.ugnius.rx.artist.model.entities.deserializers.TracksDeserializer
 import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
@@ -47,7 +48,7 @@ class RetrofitConfigurator private constructor() {
             builder.setFieldNamingPolicy(LOWER_CASE_WITH_UNDERSCORES)
             builder.registerTypeAdapter(trackListType, TracksDeserializer())
             builder.registerTypeAdapter(albumsListType, AlbumsDeserializer())
-//            builder.registerTypeAdapter(artistsListType, ArtistDeserializer())
+            builder.registerTypeAdapter(artistsListType, ArtistDeserializer())
             return GsonConverterFactory.create(builder.create())
         }
     }

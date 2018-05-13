@@ -12,11 +12,12 @@ class ArtistDeserializer : JsonDeserializer<List<Artist>> {
     override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): List<Artist> {
         val artists = arrayListOf<Artist>()
         if (json.isJsonArray) {
-            json.asJsonArray.forEach { artists.add(context.deserialize(it,typeOfT)) }
+            json.asJsonArray.forEach {
+                artists.add(context.deserialize(it, Artist::class.java))
+            }
         } else {
             json.asJsonObject.getAsJsonArray("artists").forEach {
-                println("deserializing")
-                artists.add(context.deserialize(it,typeOfT))
+                artists.add(context.deserialize(it, Artist::class.java))
             }
         }
         return artists

@@ -65,6 +65,7 @@ class ArtistActivity : AppCompatActivity(), View {
         presenter.queryArtist("6rYogEVj60BCIsLukpAnwr")
         presenter.queryTopTracks("6rYogEVj60BCIsLukpAnwr", "ES")
         albumsSingle = presenter.getAlbumsOberservable("6rYogEVj60BCIsLukpAnwr")
+        presenter.querySimilarArtists("6rYogEVj60BCIsLukpAnwr")
         albumsSingle?.subscribe()
     }
 

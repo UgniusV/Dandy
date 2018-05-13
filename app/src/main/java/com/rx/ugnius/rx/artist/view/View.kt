@@ -8,5 +8,6 @@ interface View {
         fun displayArtistInfo(artist: Artist)
         fun displayArtistTracks(tracks: ArrayList<Track>)
         fun displayArtistAlbums(albums: List<Album>)
+        fun displaySimilarArtists(artists: List<Artist>)
         fun showError(message: String)
 }
