@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.rx.ugnius.rx.R
 import com.rx.ugnius.rx.artist.model.entities.Track
-import com.rx.ugnius.rx.secondOrNull
+import com.rx.ugnius.rx.artist.common.secondOrNull
 import kotlinx.android.synthetic.main.track_cell_entry.view.*
 
 class TracksAdapter(context: Context) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
@@ -37,7 +37,7 @@ class TracksAdapter(context: Context) : RecyclerView.Adapter<TracksAdapter.ViewH
             trackIndex.text = (position + 1).toString()
             entry.album?.images?.secondOrNull()?.url?.let { requestManager.load(it).into(trackImage) }
             trackTitle.text = entry.name
-            trackArtist.text = entry.artists.map { it.name }.reduce { acc, name -> "$acc $name" }
+            trackArtist.text = entry.artists.map { it.name }.joinToString(" & ")
             trackDuration.text = DateUtils.formatElapsedTime(entry.duration / 1000)
         }
     }

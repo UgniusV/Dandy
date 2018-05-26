@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.rx.ugnius.rx.R
 import com.rx.ugnius.rx.artist.model.entities.Album
-import com.rx.ugnius.rx.secondOrNull
+import com.rx.ugnius.rx.artist.common.secondOrNull
 import kotlinx.android.synthetic.main.album_cell_entry.view.*
 
 class AlbumsAdapter(context: Context) : RecyclerView.Adapter<AlbumsAdapter.ViewHolder>() {

@@ -1,6 +1,6 @@
 package com.rx.ugnius.rx
 
-import com.rx.ugnius.rx.artist.ArtistPresenter
+import com.rx.ugnius.rx.artist.presenter.ArtistPresenter
 import com.rx.ugnius.rx.artist.view.View
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable

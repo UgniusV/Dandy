@@ -3,56 +3,48 @@ package com.rx.ugnius.rx.artist.view
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.graphics.Color.WHITE
 import android.graphics.LinearGradient
 import android.graphics.Shader
 import android.graphics.drawable.*
 import android.graphics.drawable.shapes.RectShape
-import android.os.Handler
 import android.support.v7.widget.RecyclerView.VERTICAL
 import android.support.v4.content.ContextCompat
 import android.support.v4.graphics.ColorUtils
 import android.support.v4.view.PagerAdapter
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.rx.ugnius.rx.R
-import com.rx.ugnius.rx.adjustColorLightness
-import com.rx.ugnius.rx.artist.ArtistPresenter
+import com.rx.ugnius.rx.artist.common.adjustColorLightness
+import com.rx.ugnius.rx.artist.presenter.ArtistPresenter
 import com.rx.ugnius.rx.artist.model.entities.Album
 import com.rx.ugnius.rx.artist.model.entities.Artist
 import com.rx.ugnius.rx.artist.model.entities.Track
-import com.rx.ugnius.rx.extractDominantSwatch
-import io.reactivex.Observable
+import com.rx.ugnius.rx.artist.common.extractDominantSwatch
 import io.reactivex.Single
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.view_artist.*
-import kotlinx.android.synthetic.main.artist_header.*
 import kotlinx.android.synthetic.main.artist_recycler.view.*
-import java.util.*
-import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 class ArtistActivity : AppCompatActivity(), View {
 
     private companion object {
-        const val ARTIST_PAGER_ENTRIES_COUNT = 2
+        const val ARTIST_PAGER_ENTRIES_COUNT = 3
     }
 
     private val tracksAdapter by lazy { TracksAdapter(this) }
     private val albumsAdapter by lazy { AlbumsAdapter(this) }
-    private val linearLayoutManager by lazy { LinearLayoutManager(this) }
-    private val gridLayoutManager by lazy { GridLayoutManager(this, 2, VERTICAL, false) }
+    private val similarArtistsAdapter by lazy { SimilarArtistsAdapter(this) }
     private val presenter = ArtistPresenter(this)
     private var albumsSingle: Single<List<Track>>? = null
 
@@ -62,11 +54,27 @@ class ArtistActivity : AppCompatActivity(), View {
         artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
         artistPager.adapter = ArtistPagerAdapter(this)
         artistPagerTabs.setupWithViewPager(artistPager)
-        presenter.queryArtist("6rYogEVj60BCIsLukpAnwr")
-        presenter.queryTopTracks("6rYogEVj60BCIsLukpAnwr", "ES")
-        albumsSingle = presenter.getAlbumsOberservable("6rYogEVj60BCIsLukpAnwr")
-        presenter.querySimilarArtists("6rYogEVj60BCIsLukpAnwr")
+        presenter.queryArtist("5IcR3N7QB1j6KBL8eImZ8m")
+        presenter.queryTopTracks("5IcR3N7QB1j6KBL8eImZ8m", "ES")
+        albumsSingle = presenter.getAlbumsObservable("5IcR3N7QB1j6KBL8eImZ8m")
         albumsSingle?.subscribe()
+        presenter.querySimilarArtists("5IcR3N7QB1j6KBL8eImZ8m")
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.artist_toolbar_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return if (item?.itemId == R.id.actionFavorite) {
+            println("favorite was clicked")
+            true
+        } else {
+            return super.onOptionsItemSelected(item)
+        }
     }
 
     override fun displayArtistInfo(artist: Artist) {
@@ -74,7 +82,7 @@ class ArtistActivity : AppCompatActivity(), View {
             //todo paziureti kodel cia meto warningus
             val monthlyListeners = String.format(getString(R.string.monthly_listeners, artist.followers.total))
             listeners.text = monthlyListeners
-            name.text = artist.name
+            collapsingLayout.title = artist.name
             Glide.with(applicationContext)
                     .asBitmap()
                     .load(artist.images.first().url)
@@ -90,7 +98,9 @@ class ArtistActivity : AppCompatActivity(), View {
                                                 createShader(artistPager, blendedColor)
                                                 artistPagerTabs.setSelectedTabIndicatorColor(adjustedColor);
                                                 artistPagerTabs.setTabTextColors(adjustedColor, adjustedColor)
-                                                blurredLayout.setBackgroundColor(ColorUtils.setAlphaComponent(adjustedColor, 70))
+                                                collapsingLayout.setContentScrimColor(adjustedColor)
+                                                collapsingLayout.setStatusBarScrimColor(adjustedColor)
+//                                                blurredLayout.setBackgroundColor(ColorUtils.setAlphaComponent(adjustedColor, 70))
                                             },
                                             onComplete = { artistPager.background = ColorDrawable(Color.WHITE) }
                                     )
@@ -149,20 +159,26 @@ class ArtistActivity : AppCompatActivity(), View {
             val view = inflater.inflate(R.layout.artist_recycler, container, false) as LinearLayout
             when (position) {
                 0 -> {
-                    view.artistRecycler.layoutManager = linearLayoutManager
+                    view.artistRecycler.layoutManager = LinearLayoutManager(this@ArtistActivity)
                     view.artistRecycler.adapter = tracksAdapter
                 }
                 1 -> {
-                    view.artistRecycler.layoutManager = gridLayoutManager
+                    view.artistRecycler.layoutManager = GridLayoutManager(this@ArtistActivity, 2, VERTICAL, false)
                     view.artistRecycler.adapter = albumsAdapter
-                    view.unfoldAlbums.visibility = android.view.View.VISIBLE
-                    view.unfoldAlbums.setOnClickListener {
-                        albumsSingle?.subscribeBy(onSuccess = { tracks ->
-                            view.artistRecycler.layoutManager = LinearLayoutManager(this@ArtistActivity)
-                            view.artistRecycler.adapter = tracksAdapter
-                            tracksAdapter.entries = ArrayList(tracks)
-                        })
-                    }
+//                    view.unfoldAlbums.visibility = android.view.View.VISIBLE
+//                    view.unfoldAlbums.setOnClickListener {
+//                        albumsSingle?.subscribeBy(onSuccess = { tracks ->
+//                            view.artistRecycler.layoutManager = LinearLayoutManager(this@ArtistActivity)
+//                            view.artistRecycler.adapter = tracksAdapter
+//                            tracksAdapter.entries = ArrayList(tracks)
+//                        })
+//                    }
+                }
+                2 -> {
+                    //TODO padaryti normalu interfaca o ne View
+                    view.unfoldAlbums.visibility = android.view.View.GONE
+                    view.artistRecycler.layoutManager = GridLayoutManager(this@ArtistActivity, 3, VERTICAL, false)
+                    view.artistRecycler.adapter = similarArtistsAdapter
                 }
             }
             container.addView(view)
@@ -179,5 +195,9 @@ class ArtistActivity : AppCompatActivity(), View {
             2 -> "Similar"
             else -> throw IllegalArgumentException("Invalid item count was specified")
         }
+    }
+
+    override fun displaySimilarArtists(artists: List<Artist>) {
+        similarArtistsAdapter.entries = ArrayList(artists)
     }
 }
