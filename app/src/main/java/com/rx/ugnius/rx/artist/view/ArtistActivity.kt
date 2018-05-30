@@ -30,6 +30,11 @@ import com.rx.ugnius.rx.artist.model.entities.Album
 import com.rx.ugnius.rx.artist.model.entities.Artist
 import com.rx.ugnius.rx.artist.model.entities.Track
 import com.rx.ugnius.rx.artist.common.extractDominantSwatch
+import com.rx.ugnius.rx.artist.view.adapters.AlbumsAdapter
+import com.rx.ugnius.rx.artist.view.adapters.SimilarArtistsAdapter
+import com.rx.ugnius.rx.artist.view.adapters.TracksAdapter
+import com.rx.ugnius.rx.artist.view.decorations.VerticalGridDecorator
+import com.rx.ugnius.rx.artist.view.utility.ViewUtils
 import io.reactivex.Single
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.view_artist.*
@@ -163,7 +168,10 @@ class ArtistActivity : AppCompatActivity(), View {
                     view.artistRecycler.adapter = tracksAdapter
                 }
                 1 -> {
-                    view.artistRecycler.layoutManager = GridLayoutManager(this@ArtistActivity, 2, VERTICAL, false)
+                    val columnCount = ViewUtils.getNumberOfColumns(context = this@ArtistActivity, columnWidth = 200)
+                    val decoration = VerticalGridDecorator(ViewUtils.dpToPx(this@ArtistActivity, 16), columnCount)
+                    view.artistRecycler.addItemDecoration(decoration)
+                    view.artistRecycler.layoutManager = GridLayoutManager(this@ArtistActivity, columnCount, VERTICAL, false)
                     view.artistRecycler.adapter = albumsAdapter
 //                    view.unfoldAlbums.visibility = android.view.View.VISIBLE
 //                    view.unfoldAlbums.setOnClickListener {
