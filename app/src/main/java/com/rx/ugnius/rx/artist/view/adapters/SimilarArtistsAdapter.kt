@@ -13,10 +13,9 @@ import kotlinx.android.synthetic.main.similar_artist_cell_entry.view.*
 
 class SimilarArtistsAdapter(context: Context) : RecyclerView.Adapter<SimilarArtistsAdapter.ViewHolder>() {
 
-    var entries = ArrayList<Artist>()
+    var entries = listOf<Artist>()
         set(value) {
-            entries.clear()
-            entries.addAll(value)
+            field = value
             notifyDataSetChanged()
         }
     private val inflater = LayoutInflater.from(context)

@@ -1,7 +1,7 @@
 package com.rx.ugnius.rx
 
 import com.rx.ugnius.rx.artist.presenter.ArtistPresenter
-import com.rx.ugnius.rx.artist.view.View
+import com.rx.ugnius.rx.artist.view.ArtistView
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
 import io.reactivex.internal.schedulers.ExecutorScheduler
@@ -18,14 +18,14 @@ class ArtistTest {
     @Test
     fun addition_isCorrect() {
         switchScheduler()
-        val viewMock = mock(View::class.java)
+        val viewMock = mock(ArtistView::class.java)
         val artistPresenter = ArtistPresenter(viewMock)
         artistPresenter.queryArtistAlbums("6rYogEVj60BCIsLukpAnwr")
         artistPresenter.queryArtist("6rYogEVj60BCIsLukpAnwr")
         artistPresenter.queryArtistTopTracks("6rYogEVj60BCIsLukpAnwr", "ES")
-        verify(viewMock, timeout(1000)).displayArtistAlbums(ArgumentMatchers.anyList())
-        verify(viewMock, timeout(1000)).displayArtistInfo(any())
-        verify(viewMock, timeout(1000)).displayArtistTracks(ArgumentMatchers.anyList())
+        verify(viewMock, timeout(1000)).setArtistsAlbums(ArgumentMatchers.anyList())
+        verify(viewMock, timeout(1000)).setArtistInfo(any())
+        verify(viewMock, timeout(1000)).setArtistTracks(ArgumentMatchers.anyList())
     }
 
     private fun switchScheduler() {

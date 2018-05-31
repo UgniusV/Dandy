@@ -1,40 +1,41 @@
 package com.rx.ugnius.rx.artist.presenter
 
 import com.rx.ugnius.rx.artist.model.ArtistClient
-import com.rx.ugnius.rx.artist.model.RetrofitConfigurator
 import com.rx.ugnius.rx.artist.model.entities.Album
-import com.rx.ugnius.rx.artist.model.entities.Track
-import com.rx.ugnius.rx.artist.view.View
-import io.reactivex.Single
+import com.rx.ugnius.rx.artist.view.ArtistView
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.rxkotlin.toObservable
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import java.util.*
 
-class ArtistPresenter(private val artistsView: View) {
+class ArtistPresenter(private val artistsView: ArtistView) {
 
     private val artistClient = RetrofitConfigurator.configure().create(ArtistClient::class.java)
+    private val compositeDisposable = CompositeDisposable()
+    var allTracksSubscription: Disposable? = null
 
     fun queryArtist(artistId: String) {
-        artistClient.getArtist(artistId)
+        val disposable = artistClient.getArtist(artistId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
-                        onSuccess = { artistsView.displayArtistInfo(it) },
+                        onSuccess = { artistsView.setArtistInfo(it) },
                         onError = { it.message?.let { artistsView.showError(it) } }
                 )
+        compositeDisposable.add(disposable)
     }
 
     fun queryTopTracks(artistId: String, market: String) {
-        artistClient.getArtistTopTracks(artistId, market)
+        val disposable = artistClient.getArtistTopTracks(artistId, market)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
-                        onSuccess = { artistsView.displayArtistTracks(ArrayList(it)) },
+                        onSuccess = { artistsView.setArtistTracks(ArrayList(it)) },
                         onError = { it.message?.let { artistsView.showError(it) } }
                 )
+        compositeDisposable.add(disposable)
     }
 
     fun querySimilarArtists(artistId: String) {
-        artistClient.getArtistRelatedArtists(artistId)
+        val disposable = artistClient.getArtistRelatedArtists(artistId)
                 .flatMapObservable { it.toObservable() }
                 .toSortedList { lhs, rhs ->
                     val lhsFollowers = lhs.followers.total
@@ -47,16 +48,17 @@ class ArtistPresenter(private val artistsView: View) {
                 }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
-                        onSuccess = { artistsView.displaySimilarArtists(it) },
+                        onSuccess = { artistsView.setSimilarArtists(it) },
                         onError = { it.message?.let { artistsView.showError(it) } }
                 )
+        compositeDisposable.add(disposable)
     }
 
-    fun getAlbumsObservable(artistId: String): Single<List<Track>> {
+    fun queryAlbums(artistId: String) {
         var album: Album? = null
-        return artistClient.getArtistAlbums(artistId)
+        allTracksSubscription = artistClient.getArtistAlbums(artistId)
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext { artistsView.displayArtistAlbums(it) }
+                .doOnNext { artistsView.setArtistsAlbums(it) }
                 .flatMapIterable { it }
                 .concatMap {
                     album = it
@@ -67,6 +69,14 @@ class ArtistPresenter(private val artistsView: View) {
                 .toList()
                 .cache()
                 .observeOn(AndroidSchedulers.mainThread())
+                .subscribe()
+        compositeDisposable.add(allTracksSubscription!!)
+    }
+
+    fun dispose() {
+        if (!compositeDisposable.isDisposed) {
+            compositeDisposable.dispose()
+        }
     }
 
 }

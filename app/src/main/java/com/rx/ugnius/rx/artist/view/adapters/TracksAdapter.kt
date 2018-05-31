@@ -14,10 +14,9 @@ import kotlinx.android.synthetic.main.track_cell_entry.view.*
 
 class TracksAdapter(context: Context) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
 
-    var entries = ArrayList<Track>()
+    var entries = listOf<Track>()
     set(value) {
-        entries.clear()
-        entries.addAll(value)
+        field = value
         notifyDataSetChanged()
     }
     private val inflater = LayoutInflater.from(context)
