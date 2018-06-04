@@ -34,23 +34,35 @@ import com.rx.ugnius.rx.artist.presenter.ArtistPresenter
 import com.rx.ugnius.rx.artist.view.decorations.VerticalGridDecorator
 import android.support.v7.widget.RecyclerView.VERTICAL
 import android.widget.LinearLayout
+import com.rx.ugnius.rx.artist.di.ArtistModule
+import com.rx.ugnius.rx.artist.di.DaggerArtistComponent
 import com.rx.ugnius.rx.artist.view.adapters.AlbumsAdapter
 import com.rx.ugnius.rx.artist.view.adapters.SimilarArtistsAdapter
 import com.rx.ugnius.rx.artist.view.adapters.TracksAdapter
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.artist_recycler.view.*
 import kotlinx.android.synthetic.main.view_artist.*
+import javax.inject.Inject
 
 class ArtistFragment : Fragment(), ArtistView {
+
 
     private companion object {
         const val ARTIST_PAGER_ENTRIES_COUNT = 3
     }
 
-    private val presenter = ArtistPresenter(this)
+    @Inject lateinit var presenter: ArtistPresenter
     private val tracksAdapter by lazy { TracksAdapter(context!!) }
     private val albumsAdapter by lazy { AlbumsAdapter(context!!) }
     private val similarArtistsAdapter by lazy { SimilarArtistsAdapter(context!!) }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        DaggerArtistComponent.builder()
+            .artistModule(ArtistModule(this))
+            .build()
+            .inject(this)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.view_artist, container, false)

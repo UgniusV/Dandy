@@ -11,6 +11,9 @@ import com.rx.ugnius.rx.artist.model.entities.deserializers.TracksDeserializer
 import dagger.Module
 import dagger.Provides
 import com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
+import com.rx.ugnius.rx.artist.model.ArtistClient
+import com.rx.ugnius.rx.artist.presenter.ArtistPresenter
+import com.rx.ugnius.rx.artist.view.ArtistView
 import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -18,18 +21,18 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
 @Module
-class ArtistFragmentModule {
-    //presenter
+class ArtistModule(private val artistView: ArtistView) {
 
-//    @Provides
-//    fun provideArtistPresenter()
+    //todo look into scopes
+    @Provides
+    fun provideArtistPresenter(artistClient: ArtistClient) = ArtistPresenter(artistClient, artistView)
 
     @Provides
     fun provideOkHttpClient() = with(OkHttpClient().newBuilder()) {
-        val accesToken = " Bearer BQCg5P6wswsJbxYO8Umyh18kRgpi_J2cbZKp-bTPCMiEKg1cMuQ3QqfyKf8ogpeQo9TT6FVplXRxQcaiQMxrO02Zg0GtdaJmrJs4qhtJMkAfCDzEorNh-qDOkPE1XoU01sEkbcRxI7cmExGI3LXYpKXEdXkWy9GwZrE5-Lms9I1PBsLypw"
+        val accessToken = " Bearer BQAfm-Wtm3enyiK3qgbKxuY9b-DvOwf0pbgF3e_kMX2xvI3awqZ9eidAOFI7KbzhE1yByxVzCFNF00JYjeT4QJHO03BHc5EZBVh305EsfkYkmlBI-5IbiSdmVScjTusLFcRwW-L6hmei_rwuHRT4hgwV2Q3JtcCCu1w1vMCIG72XbGt40g"
         addInterceptor { chain ->
             val originalRequest = chain.request()
-            val builder = originalRequest.newBuilder().header("Authorization", accesToken)
+            val builder = originalRequest.newBuilder().header("Authorization", accessToken)
             val modifiedRequest = builder.build()
             chain.proceed(modifiedRequest)
         }
@@ -51,14 +54,17 @@ class ArtistFragmentModule {
 
     @Provides
     fun provideRetrofit(
-            gsonConverterFactory: GsonConverterFactory,
-            okHttpClient: OkHttpClient
-            ) = with(Retrofit.Builder()) {
+        gsonConverterFactory: GsonConverterFactory,
+        okHttpClient: OkHttpClient
+    ) = with(Retrofit.Builder()) {
         baseUrl("https://api.spotify.com")
         addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
         addConverterFactory(gsonConverterFactory)
         client(okHttpClient)
         build()
     }
+
+    @Provides
+    fun provideArtistClient(retrofit: Retrofit) = retrofit.create(ArtistClient::class.java)
 
 }

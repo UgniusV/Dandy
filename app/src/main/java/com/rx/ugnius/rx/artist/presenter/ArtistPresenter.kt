@@ -6,11 +6,12 @@ import com.rx.ugnius.rx.artist.view.ArtistView
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.rxkotlin.toObservable
 import java.util.*
 
-class ArtistPresenter(private val artistsView: ArtistView) {
+class ArtistPresenter(private val artistClient: ArtistClient, private val artistsView: ArtistView) {
 
-    private val artistClient = RetrofitConfigurator.configure().create(ArtistClient::class.java)
     private val compositeDisposable = CompositeDisposable()
     var allTracksSubscription: Disposable? = null
 
