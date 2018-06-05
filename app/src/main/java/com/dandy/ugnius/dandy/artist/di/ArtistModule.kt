@@ -1,5 +1,7 @@
 package com.dandy.ugnius.dandy.artist.di
 
+import android.content.Context
+import android.content.SharedPreferences
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.dandy.ugnius.dandy.artist.model.entities.Album
@@ -21,18 +23,19 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
 @Module
-class ArtistModule(private val artistView: ArtistView) {
+class ArtistModule(private val artistView: ArtistView, private val context: Context?) {
 
     //todo look into scopes
     @Provides
     fun provideArtistPresenter(artistClient: ArtistClient) = ArtistPresenter(artistClient, artistView)
 
     @Provides
-    fun provideOkHttpClient() = with(OkHttpClient().newBuilder()) {
-        val accessToken = " Bearer BQD5uTImO0nEYWLIMAz05dnwh63RY6JvGXde0scwvJcBxe8z7wZ_6WYLf9oi2Z8tKK0CZ6bvp7IUGoKEkffZzUexfmYN2Hq1pFEEN2gLrj6CaedC1AEfswsV0pelGOqg7GcFZHE6FKPCJ8Xb-WqMHvL84uCdw7Gl7SrJ52MFD5eUUQldCB0NobN2"
+    fun provideOkHttpClient(authenticationPreferences: SharedPreferences?) = with(OkHttpClient().newBuilder()) {
+        //todo pasidaryti abstractu access token instanca kuri galetume saugoti pvz i realma ir kuris zinotu ar yra valid ar nebe ir pats save pasirefreshintu ar w/e
+        val accessToken = authenticationPreferences?.getString("access_token","") ?: ""
         addInterceptor { chain ->
             val originalRequest = chain.request()
-            val builder = originalRequest.newBuilder().header("Authorization", accessToken)
+            val builder = originalRequest.newBuilder().header("Authorization", " Bearer $accessToken")
             val modifiedRequest = builder.build()
             chain.proceed(modifiedRequest)
         }
@@ -66,5 +69,10 @@ class ArtistModule(private val artistView: ArtistView) {
 
     @Provides
     fun provideArtistClient(retrofit: Retrofit) = retrofit.create(ArtistClient::class.java)
+
+    @Provides
+    fun provideAuthenticationPreferences(): SharedPreferences? {
+        return context?.getSharedPreferences("authentication_preferences", Context.MODE_PRIVATE)
+    }
 
 }

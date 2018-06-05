@@ -1,4 +1,4 @@
-package player.view
+package com.dandy.ugnius.dandy.player.view
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,78 +7,62 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.dandy.ugnius.dandy.R
-import com.spotify.sdk.android.player.*
-import com.spotify.sdk.android.authentication.LoginActivity.REQUEST_CODE
-import com.spotify.sdk.android.authentication.AuthenticationClient
-import com.spotify.sdk.android.authentication.AuthenticationRequest
-import com.spotify.sdk.android.authentication.AuthenticationResponse
+import com.dandy.ugnius.dandy.artist.di.ArtistModule
+import com.dandy.ugnius.dandy.player.di.DaggerPlayerComponent
+import com.dandy.ugnius.dandy.player.di.PlayerModule
+import com.dandy.ugnius.dandy.player.presenter.PlayerPresenter
+import com.spotify.sdk.android.player.Player
+import com.spotify.sdk.android.player.SpotifyPlayer
+import javax.inject.Inject
 
 
-class PlayerFragment : Fragment(), Player.NotificationCallback, ConnectionStateCallback {
+class PlayerFragment : Fragment(), PlayerView {
 
-    private val CLIENT_ID = "b6555c39f001444ab39401466d480010"
-    private val REDIRECT_URI = "testschema://callback"
+    @Inject lateinit var playerPresenter: PlayerPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val builder = AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI)
-        builder.setScopes(arrayOf("user-read-private", "streaming"))
-        val request = builder.build()
-        AuthenticationClient.openLoginActivity(activity, REQUEST_CODE, request)
-
+        DaggerPlayerComponent.builder()
+            .playerModule(PlayerModule(this, context))
+            .build()
+            .inject(this)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.view_player, container, false)
     }
 
-    //todo sitas neveikia ant fragmentu todel reikia iskelti login activity
-    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent) {
-        super.onActivityResult(requestCode, resultCode, intent)
-        if (requestCode == REQUEST_CODE) {
-            val response = AuthenticationClient.getResponse(resultCode, intent);
-            if (response.type == AuthenticationResponse.Type.TOKEN) {
-                val playerConfig = Config(context, response.accessToken, CLIENT_ID);
-                Spotify.getPlayer(playerConfig, this, object : SpotifyPlayer.InitializationObserver {
-                    override fun onInitialized(player: SpotifyPlayer?) {
-                        println("flow: initialized")
-                        player?.playUri(null, "spotify:track:2TpxZ7JUBn3uw46aR7qd6V", 0, 0);
-                    }
 
-                    override fun onError(p0: Throwable?) {
-                        println("flow: on error")
-                    }
-                })
-            }
-        }
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        arguments?.getString("trackId")?.let { playerPresenter.playTrack(it) }
     }
 
+    override fun pause() {
 
-    override fun onPlaybackError(p0: Error?) {
-        println("on playback error")
     }
 
-    override fun onPlaybackEvent(p0: PlayerEvent?) {
-        println("on playback event")
+    override fun playNextSong() {
+
     }
 
-    override fun onLoggedOut() {
-        println("on logged out")
+    override fun playPreviousSong() {
+
     }
 
-    override fun onLoggedIn() {
-        println("on logged in")
+    override fun resume() {
+
     }
 
-    override fun onConnectionMessage(p0: String?) {
-        println("onConnectionMessage")
+    override fun highlightShuffle() {
+
     }
 
-    override fun onLoginFailed(p0: Error?) {
-        println("onLoginFailed")
+    override fun highlightReplay() {
+
     }
 
-    override fun onTemporaryError() {
-        println("onTemporaryError")
+    override fun highlightLibrary() {
+
     }
 }

@@ -43,7 +43,7 @@ import com.dandy.ugnius.dandy.artist.view.interfaces.ArtistFragmentDelegate
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.artist_recycler.view.*
 import kotlinx.android.synthetic.main.view_artist.*
-import main.MainActivity
+import com.dandy.ugnius.dandy.main.MainActivity
 import javax.inject.Inject
 
 class ArtistFragment : Fragment(), ArtistView {
@@ -62,7 +62,7 @@ class ArtistFragment : Fragment(), ArtistView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         DaggerArtistComponent.builder()
-            .artistModule(ArtistModule(this))
+            .artistModule(ArtistModule(this, context))
             .build()
             .inject(this)
     }

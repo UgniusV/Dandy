@@ -45,8 +45,11 @@ class MainActivity : AppCompatActivity(), ArtistFragmentDelegate {
 
 
     override fun onArtistTrackClicked(trackId: String) {
+        val bundle = Bundle()
+        bundle.putString("trackId", trackId)
+        val playerFragment = PlayerFragment().apply { arguments = bundle }
         supportFragmentManager.beginTransaction()
-            .replace(R.id.contentViewFragment, PlayerFragment())
+            .replace(R.id.contentViewFragment, playerFragment)
             .commit();
     }
 }
