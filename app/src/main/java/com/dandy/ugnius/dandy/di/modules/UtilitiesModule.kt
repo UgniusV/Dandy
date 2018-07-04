@@ -7,6 +7,7 @@ import android.content.Context.MODE_PRIVATE
 import android.support.v4.app.NotificationCompat
 import com.App
 import com.App.Companion.CHANNEL_ID
+import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.CLIENT_ID
 import com.spotify.sdk.android.player.Config
 import com.spotify.sdk.android.player.Spotify
@@ -48,4 +49,8 @@ class UtilitiesModule(private val context: Context?) {
     @Singleton
     @Provides
     fun provideNotificationBuilder(context: Context?) = NotificationCompat.Builder(context!!, CHANNEL_ID)
+
+    @Singleton
+    @Provides
+    fun provideGlide(context: Context?) = Glide.with(context!!)
 }

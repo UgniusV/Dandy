@@ -41,15 +41,11 @@ class MainActivity : AppCompatActivity(), ArtistFragmentDelegate {
     }
 
     //todo this wont play all the tracks correctly after top ten ends
-    override fun onArtistTrackClicked(currentTrack: Track, tracks: List<Track>) {
-        val bundle = Bundle()
-        bundle.putString("trackId", currentTrack.id)
-        val url = currentTrack.album?.images?.first()?.url
-        bundle.putString("artwork", url!!)
-        bundle.putLong("duration", currentTrack.duration)
-        bundle.putString("name", currentTrack.name)
-        bundle.putString("artists", currentTrack.artists.map { it.name }.joinToString(" & "))
-        bundle.putStringArrayList("tracks", tracks.map { it.id } as ArrayList<String>)
+    override fun onArtistTrackClicked(position: Int, tracks: ArrayList<Track>) {
+        val bundle = Bundle().apply {
+            putInt("position", position)
+            putParcelableArrayList("tracks", tracks)
+        }
         val playerFragment = PlayerFragment().apply { arguments = bundle }
         supportFragmentManager.beginTransaction()
             .replace(R.id.contentViewFragment, playerFragment)

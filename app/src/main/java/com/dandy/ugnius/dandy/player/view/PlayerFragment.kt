@@ -31,6 +31,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.dandy.ugnius.dandy.*
 import com.dandy.ugnius.dandy.artist.common.adjustColorBrightness
 import com.dandy.ugnius.dandy.artist.common.extractDominantSwatch
+import com.dandy.ugnius.dandy.artist.model.entities.Track
 import com.dandy.ugnius.dandy.login.view.LoginActivity
 import com.dandy.ugnius.dandy.player.presenter.PlayerPresenter
 import com.spotify.sdk.android.player.SpotifyPlayer
@@ -41,10 +42,13 @@ import javax.inject.Inject
 
 class PlayerFragment : Fragment(), PlayerView {
 
-    @Inject lateinit var spotifyPlayer: SpotifyPlayer
-    @Inject lateinit var notificationBuilder: NotificationCompat.Builder
+    @Inject
+    lateinit var spotifyPlayer: SpotifyPlayer
+    @Inject
+    lateinit var notificationBuilder: NotificationCompat.Builder
     private val playerPresenter by lazy { PlayerPresenter(spotifyPlayer, this) }
-    private var trackIds: ArrayList<String>? = null
+    private var tracks: ArrayList<Track>? = null
+    private var currentTrackPosition: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,18 +57,17 @@ class PlayerFragment : Fragment(), PlayerView {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         savedInstanceState?.let {
-            trackIds = savedInstanceState.getStringArrayList("tracks")
+            tracks = savedInstanceState.getParcelableArrayList("tracks")
         }
         return inflater.inflate(R.layout.view_player, container, false)
     }
 
     override fun onStart() {
         super.onStart()
-        arguments?.getString("trackId")?.let { playerPresenter.playTrack(it) }
-        val cover = arguments?.getString("artwork")
-        trackTitle.text = arguments?.getString("name")
-        artistTitle.text = arguments?.getString("artists")
-        trackIds = arguments?.getStringArrayList("tracks")
+        currentTrackPosition = arguments?.getInt("position")
+        tracks = arguments?.getParcelableArrayList("tracks")
+        val currentTrack = tracks?.get(currentTrackPosition ?: 0)
+        val cover = currentTrack?.images?.first()
         seekbar.setPadding(0, 0, 0, 0)
         Glide.with(context ?: return)
             .asBitmap()
@@ -77,7 +80,7 @@ class PlayerFragment : Fragment(), PlayerView {
                             onSuccess = { setAccentColor(it) },
                             onComplete = { playbackControls.background = ColorDrawable(Color.WHITE) }
                         )
-                    showNotification(resource, arguments?.getString("name"), arguments?.getString("artists"))
+                    currentTrack?.let { showNotification(resource, it) }
                 }
             })
     }
@@ -87,7 +90,7 @@ class PlayerFragment : Fragment(), PlayerView {
         val transparentWhite = ContextCompat.getColor(context!!, R.color.transparentWhite)
         val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.5F)
         val adjustedColor = adjustColorBrightness(color = swatch.rgb, brightness = 1F)
-        seekbar.getProgressDrawable().setColorFilter(adjustedColor, PorterDuff.Mode.MULTIPLY);
+        seekbar.progressDrawable.setColorFilter(adjustedColor, PorterDuff.Mode.MULTIPLY);
         createShader(playbackControls, blendedColor)
     }
 
@@ -112,7 +115,7 @@ class PlayerFragment : Fragment(), PlayerView {
         }
     }
 
-    private fun showNotification(artwork: Bitmap, title: String?, artists: String?) {
+    private fun showNotification(artwork: Bitmap, track: Track) {
 
         val intent = Intent(activity, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -121,9 +124,10 @@ class PlayerFragment : Fragment(), PlayerView {
         val previousIntent = Intent(NOTIFICATION_ACTION_PREVIOUS)
         val nextIntent = Intent(NOTIFICATION_ACTION_NEXT)
 
-        trackIds?.getOrNull(3)?.let {
-            nextIntent.putExtra("nextTrackId", it)
+        tracks?.getOrNull(3)?.let {
+            nextIntent.putExtra("nextTrack", it)
         }
+//        nextIntent.extras?.getParcelable<Track>("nextTrack")
 
         val startIntent = Intent(NOTIFICATION_ACTION_PLAY)
         val pauseIntent = Intent(NOTIFICATION_ACTION_PAUSE)
@@ -133,7 +137,10 @@ class PlayerFragment : Fragment(), PlayerView {
         val startPreviousIntent = PendingIntent.getBroadcast(context, NOTIFICATION_REQUEST_CODE, startIntent, 0)
         val pausePendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_REQUEST_CODE, pauseIntent, 0)
 
-        val notificationBuilder = this.notificationBuilder
+        val title = track.name
+        val artists = track.artists
+
+        this.notificationBuilder
             .setSmallIcon(R.mipmap.ic_launcher_round)
             .setContentTitle(title)
             .setContentText(artists)
@@ -154,7 +161,7 @@ class PlayerFragment : Fragment(), PlayerView {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        trackIds?.let { outState.putStringArrayList("tracks", it) }
+        outState.putParcelableArrayList("tracks", tracks)
     }
 
     override fun pause() {

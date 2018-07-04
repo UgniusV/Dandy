@@ -56,6 +56,7 @@ class ArtistPresenter(private val APIClient: APIClient, private val artistsView:
         compositeDisposable.add(disposable)
     }
 
+
     fun queryAlbums(artistId: String) {
         var album: Album? = null
         allTracksSubscription = APIClient.getArtistAlbums(artistId)
@@ -67,7 +68,7 @@ class ArtistPresenter(private val APIClient: APIClient, private val artistsView:
                     APIClient.getAlbumsTracks(it.id)
                 }
                 .flatMapIterable { it }
-                .map { it.also { it.album = album } }
+                .map { it.also { it.images = album?.images?.map { it.url } } }
                 .toList()
                 .cache()
                 .observeOn(AndroidSchedulers.mainThread())

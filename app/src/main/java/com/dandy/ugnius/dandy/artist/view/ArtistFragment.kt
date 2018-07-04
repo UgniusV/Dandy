@@ -54,7 +54,7 @@ class ArtistFragment : Fragment(), ArtistView {
 
     @Inject lateinit var apiClient: APIClient
     private val presenter by lazy { ArtistPresenter(apiClient, this) }
-    private val tracksAdapter by lazy { TracksAdapter(context!!, { currentTrack, tracks -> delegate?.onArtistTrackClicked(currentTrack, tracks) }) }
+    private val tracksAdapter by lazy { TracksAdapter(context!!, { position, tracks -> delegate?.onArtistTrackClicked(position, tracks) }) }
     private val albumsAdapter by lazy { AlbumsAdapter(context!!) }
     private val similarArtistsAdapter by lazy { SimilarArtistsAdapter(context!!) }
     private var delegate: ArtistFragmentDelegate? = null
@@ -89,12 +89,12 @@ class ArtistFragment : Fragment(), ArtistView {
     }
 
     override fun setArtistInfo(artist: Artist) {
-        val monthlyListeners = String.format(getString(R.string.monthly_listeners, artist.followers.total))
+        val monthlyListeners = String.format(getString(R.string.monthly_listeners, artist.followers?.total ?: 0))
         listeners.text = monthlyListeners
         collapsingLayout.title = artist.name
         Glide.with(context ?: return)
             .asBitmap()
-            .load(artist.images.first().url)
+            .load(artist.images.first()?.url)
             .into(object : SimpleTarget<Bitmap>(background.width, background.height) {
                 override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                     background.setImageBitmap(resource)
@@ -107,7 +107,7 @@ class ArtistFragment : Fragment(), ArtistView {
             })
     }
 
-    override fun setArtistTracks(tracks: List<Track>) {
+    override fun setArtistTracks(tracks: ArrayList<Track>) {
         tracksAdapter.entries = tracks
     }
 
