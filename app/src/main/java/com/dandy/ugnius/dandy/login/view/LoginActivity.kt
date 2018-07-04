@@ -1,9 +1,14 @@
 package com.dandy.ugnius.dandy.login.view
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.NotificationCompat
 import com.dandy.ugnius.dandy.*
 import com.dandy.ugnius.dandy.main.MainActivity
 import com.github.florent37.viewanimator.ViewAnimator
@@ -11,6 +16,11 @@ import com.spotify.sdk.android.authentication.AuthenticationClient
 import com.spotify.sdk.android.authentication.AuthenticationRequest
 import com.spotify.sdk.android.authentication.AuthenticationResponse.Type.TOKEN
 import kotlinx.android.synthetic.main.activity_login.*
+import android.app.PendingIntent
+import android.media.session.MediaSession
+import android.support.v4.app.NotificationManagerCompat
+import android.support.v4.media.session.MediaSessionCompat
+import com.App
 
 
 class LoginActivity : AppCompatActivity() {
@@ -63,4 +73,5 @@ class LoginActivity : AppCompatActivity() {
         startActivity(intent)
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
+
 }

@@ -5,9 +5,11 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import com.dandy.ugnius.dandy.R
+import com.dandy.ugnius.dandy.artist.model.entities.Track
 import com.dandy.ugnius.dandy.artist.view.interfaces.ArtistFragmentDelegate
 import kotlinx.android.synthetic.main.view_artist.*
 import com.dandy.ugnius.dandy.player.view.PlayerFragment
+import java.util.ArrayList
 
 class MainActivity : AppCompatActivity(), ArtistFragmentDelegate {
 
@@ -24,11 +26,6 @@ class MainActivity : AppCompatActivity(), ArtistFragmentDelegate {
 
     }
 
-    /*
-       getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragment_container, firstFragment).commit();
-     */
-
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.artist_toolbar_menu, menu)
         return super.onCreateOptionsMenu(menu)
@@ -43,10 +40,16 @@ class MainActivity : AppCompatActivity(), ArtistFragmentDelegate {
         }
     }
 
-
-    override fun onArtistTrackClicked(trackId: String) {
+    //todo this wont play all the tracks correctly after top ten ends
+    override fun onArtistTrackClicked(currentTrack: Track, tracks: List<Track>) {
         val bundle = Bundle()
-        bundle.putString("trackId", trackId)
+        bundle.putString("trackId", currentTrack.id)
+        val url = currentTrack.album?.images?.first()?.url
+        bundle.putString("artwork", url!!)
+        bundle.putLong("duration", currentTrack.duration)
+        bundle.putString("name", currentTrack.name)
+        bundle.putString("artists", currentTrack.artists.map { it.name }.joinToString(" & "))
+        bundle.putStringArrayList("tracks", tracks.map { it.id } as ArrayList<String>)
         val playerFragment = PlayerFragment().apply { arguments = bundle }
         supportFragmentManager.beginTransaction()
             .replace(R.id.contentViewFragment, playerFragment)

@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.track_cell_entry.view.*
 
 class TracksAdapter(
     context: Context,
-    private val onTrackClicked: (String) -> Unit
+    private val onTrackClicked: (Track, List<Track>) -> Unit
 ) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
 
     var entries = listOf<Track>()
@@ -41,7 +41,7 @@ class TracksAdapter(
             trackTitle.text = entry.name
             trackArtist.text = entry.artists.map { it.name }.joinToString(" & ")
             trackDuration.text = DateUtils.formatElapsedTime(entry.duration / 1000)
-            setOnClickListener { onTrackClicked(entry.id) }
+            setOnClickListener { onTrackClicked(entry, entries) }
         }
     }
 

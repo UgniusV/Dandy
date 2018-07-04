@@ -32,10 +32,10 @@ import com.dandy.ugnius.dandy.artist.model.entities.Track
 import com.dandy.ugnius.dandy.artist.presenter.ArtistPresenter
 import android.support.v7.widget.RecyclerView.VERTICAL
 import android.widget.LinearLayout
+import com.App
 import com.dandy.ugnius.dandy.R
+import com.dandy.ugnius.dandy.artist.model.APIClient
 import com.dandy.ugnius.dandy.artist.view.decorations.VerticalGridDecorator
-import com.dandy.ugnius.dandy.artist.di.ArtistModule
-import com.dandy.ugnius.dandy.artist.di.DaggerArtistComponent
 import com.dandy.ugnius.dandy.artist.view.adapters.AlbumsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.SimilarArtistsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.TracksAdapter
@@ -48,23 +48,20 @@ import javax.inject.Inject
 
 class ArtistFragment : Fragment(), ArtistView {
 
-
     private companion object {
         const val ARTIST_PAGER_ENTRIES_COUNT = 3
     }
 
-    @Inject lateinit var presenter: ArtistPresenter
-    private val tracksAdapter by lazy { TracksAdapter(context!!, { trackId -> delegate?.onArtistTrackClicked(trackId) }) }
+    @Inject lateinit var apiClient: APIClient
+    private val presenter by lazy { ArtistPresenter(apiClient, this) }
+    private val tracksAdapter by lazy { TracksAdapter(context!!, { currentTrack, tracks -> delegate?.onArtistTrackClicked(currentTrack, tracks) }) }
     private val albumsAdapter by lazy { AlbumsAdapter(context!!) }
     private val similarArtistsAdapter by lazy { SimilarArtistsAdapter(context!!) }
     private var delegate: ArtistFragmentDelegate? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        DaggerArtistComponent.builder()
-            .artistModule(ArtistModule(this, context))
-            .build()
-            .inject(this)
+        (activity?.applicationContext as App).mainComponent?.inject(this)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -73,6 +70,14 @@ class ArtistFragment : Fragment(), ArtistView {
 
     override fun onStart() {
         super.onStart()
+        arguments?.getString("artistId")?.let {
+            with(presenter) {
+                queryArtist(it)
+                queryTopTracks(it, "ES")
+                queryAlbums(it)
+                querySimilarArtists(it)
+            }
+        }
         artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
         artistPager.adapter = ArtistPagerAdapter(context!!)
         artistPagerTabs.setupWithViewPager(artistPager)
@@ -83,35 +88,23 @@ class ArtistFragment : Fragment(), ArtistView {
         delegate = context as? MainActivity
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        arguments?.getString("artistId")?.let {
-            with(presenter) {
-                queryArtist(it)
-                queryTopTracks(it, "ES")
-                queryAlbums(it)
-                querySimilarArtists(it)
-            }
-        }
-    }
-
     override fun setArtistInfo(artist: Artist) {
         val monthlyListeners = String.format(getString(R.string.monthly_listeners, artist.followers.total))
         listeners.text = monthlyListeners
         collapsingLayout.title = artist.name
         Glide.with(context ?: return)
-                .asBitmap()
-                .load(artist.images.first().url)
-                .into(object : SimpleTarget<Bitmap>(background.width, background.height) {
-                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                        background.setImageBitmap(resource)
-                        resource.extractDominantSwatch()
-                                .subscribeBy(
-                                        onSuccess = { setArtistAccentColor(it) },
-                                        onComplete = { artistPager.background = ColorDrawable(WHITE) }
-                                )
-                    }
-                })
+            .asBitmap()
+            .load(artist.images.first().url)
+            .into(object : SimpleTarget<Bitmap>(background.width, background.height) {
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    background.setImageBitmap(resource)
+                    resource.extractDominantSwatch()
+                        .subscribeBy(
+                            onSuccess = { setAccentColor(it) },
+                            onComplete = { artistPager.background = ColorDrawable(WHITE) }
+                        )
+                }
+            })
     }
 
     override fun setArtistTracks(tracks: List<Track>) {
@@ -130,7 +123,7 @@ class ArtistFragment : Fragment(), ArtistView {
         //todo show lottie error
     }
 
-    private fun setArtistAccentColor(swatch: Palette.Swatch) {
+    private fun setAccentColor(swatch: Palette.Swatch) {
         val adjustedColor = adjustColorLightness(color = swatch.rgb, lightness = 0.3F)
         val transparentWhite = ContextCompat.getColor(context!!, R.color.transparentWhite)
         val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.5F)
@@ -145,18 +138,18 @@ class ArtistFragment : Fragment(), ArtistView {
         }
     }
 
-
+    //todo padaryti cia normalu viewo importa
     private fun createShader(view: android.view.View, color: Int) {
         val shader = object : ShapeDrawable.ShaderFactory() {
             override fun resize(width: Int, height: Int): Shader {
                 return LinearGradient(
-                        (view.width / 2).toFloat(),
-                        0F,
-                        (width / 2).toFloat(),
-                        (view.height).toFloat(),
-                        intArrayOf(color, WHITE, WHITE),
-                        floatArrayOf(0F, 0.2f, 1f),
-                        Shader.TileMode.CLAMP
+                    (view.width / 2).toFloat(),
+                    0F,
+                    (width / 2).toFloat(),
+                    (view.height).toFloat(),
+                    intArrayOf(color, WHITE, WHITE),
+                    floatArrayOf(0F, 0.2f, 1f),
+                    Shader.TileMode.CLAMP
                 )
             }
         }
@@ -185,7 +178,7 @@ class ArtistFragment : Fragment(), ArtistView {
                 }
                 1 -> {
                     val columnCount = getNumberOfColumns(context, columnWidth = 180)
-                    val decoration = VerticalGridDecorator(context,16, columnCount)
+                    val decoration = VerticalGridDecorator(context, 16, columnCount)
                     layout.artistRecycler.addItemDecoration(decoration)
                     layout.artistRecycler.layoutManager = GridLayoutManager(context, columnCount, VERTICAL, false)
                     layout.artistRecycler.adapter = albumsAdapter

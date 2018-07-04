@@ -1,7 +1,7 @@
 package com.dandy.ugnius.dandy.artist.presenter
 
 import com.dandy.ugnius.dandy.artist.view.ArtistView
-import com.dandy.ugnius.dandy.artist.model.ArtistClient
+import com.dandy.ugnius.dandy.artist.model.APIClient
 import com.dandy.ugnius.dandy.artist.model.entities.Album
 import com.dandy.ugnius.dandy.artist.model.entities.Artist
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -11,13 +11,13 @@ import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.toObservable
 import java.util.*
 
-class ArtistPresenter(private val artistClient: ArtistClient, private val artistsView: ArtistView) {
+class ArtistPresenter(private val APIClient: APIClient, private val artistsView: ArtistView) {
 
     private val compositeDisposable = CompositeDisposable()
     var allTracksSubscription: Disposable? = null
 
     fun queryArtist(artistId: String) {
-        val disposable = artistClient.getArtist(artistId)
+        val disposable = APIClient.getArtist(artistId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
                         onSuccess = { artistsView.setArtistInfo(it) },
@@ -27,7 +27,7 @@ class ArtistPresenter(private val artistClient: ArtistClient, private val artist
     }
 
     fun queryTopTracks(artistId: String, market: String) {
-        val disposable = artistClient.getArtistTopTracks(artistId, market)
+        val disposable = APIClient.getArtistTopTracks(artistId, market)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
                         onSuccess = { artistsView.setArtistTracks(ArrayList(it)) },
@@ -37,7 +37,7 @@ class ArtistPresenter(private val artistClient: ArtistClient, private val artist
     }
 
     fun querySimilarArtists(artistId: String) {
-        val disposable = artistClient.getArtistRelatedArtists(artistId)
+        val disposable = APIClient.getArtistRelatedArtists(artistId)
                 .flatMapObservable { it.toObservable() }
                 .toSortedList { lhs: Artist, rhs: Artist ->
                     val lhsFollowers = lhs.followers.total
@@ -58,13 +58,13 @@ class ArtistPresenter(private val artistClient: ArtistClient, private val artist
 
     fun queryAlbums(artistId: String) {
         var album: Album? = null
-        allTracksSubscription = artistClient.getArtistAlbums(artistId)
+        allTracksSubscription = APIClient.getArtistAlbums(artistId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext { artistsView.setArtistsAlbums(it) }
                 .flatMapIterable { it }
                 .concatMap {
                     album = it
-                    artistClient.getAlbumsTracks(it.id)
+                    APIClient.getAlbumsTracks(it.id)
                 }
                 .flatMapIterable { it }
                 .map { it.also { it.album = album } }

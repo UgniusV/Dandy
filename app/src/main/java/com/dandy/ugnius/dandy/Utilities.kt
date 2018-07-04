@@ -1,5 +1,11 @@
 package com.dandy.ugnius.dandy
 
+import android.content.Context
+import android.media.session.MediaSession
+import android.support.v4.app.NotificationCompat
+import com.App.Companion.CHANNEL_ID
+import android.support.v4.app.NotificationCompat.PRIORITY_LOW
+
 object Utilities {
 
     fun getScopes() = arrayOf(
