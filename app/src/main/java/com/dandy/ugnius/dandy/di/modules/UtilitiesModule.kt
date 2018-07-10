@@ -1,9 +1,9 @@
 package com.dandy.ugnius.dandy.di.modules
 
-import android.content.Context
-import android.content.SharedPreferences
+import android.content.*
 import dagger.Module
 import android.content.Context.MODE_PRIVATE
+import android.net.ConnectivityManager
 import android.support.v4.app.NotificationCompat
 import com.App
 import com.App.Companion.CHANNEL_ID
@@ -18,6 +18,7 @@ import javax.inject.Singleton
 @Module
 class UtilitiesModule(private val context: Context?) {
 
+    //todo cia reikia pasidaryti custom scopa
     @Singleton
     @Provides
     fun provideContext(): Context? = context
@@ -33,16 +34,7 @@ class UtilitiesModule(private val context: Context?) {
     fun provideSpotifyPlayer(context: Context?, authenticationPreferences: SharedPreferences?): SpotifyPlayer {
         val accessToken = authenticationPreferences?.getString("access_token", "") ?: ""
         val playerConfig = Config(context, accessToken, CLIENT_ID)
-        return Spotify.getPlayer(playerConfig, this, object : SpotifyPlayer.InitializationObserver {
-            override fun onInitialized(p0: SpotifyPlayer?) {
-                println("player was initialized")
-            }
-
-            override fun onError(p0: Throwable?) {
-                //eventBus -> post player failed to initialized event
-                println("on error")
-            }
-        })
+        return Spotify.getPlayer(playerConfig, context, null)
 
     }
 

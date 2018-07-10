@@ -1,13 +1,10 @@
-package com.dandy.ugnius.dandy.artist.model
+package com.dandy.ugnius.dandy.model.clients
 
-import com.dandy.ugnius.dandy.artist.model.entities.Album
-import com.dandy.ugnius.dandy.artist.model.entities.Artist
-import com.dandy.ugnius.dandy.artist.model.entities.Track
+import com.dandy.ugnius.dandy.model.entities.*
 import io.reactivex.Observable
 import io.reactivex.Single
-import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.Query
+import retrofit2.Call
+import retrofit2.http.*
 
 interface APIClient {
 
@@ -18,7 +15,10 @@ interface APIClient {
     fun getArtistTopTracks(@Path("artistId") artistId: String, @Query("country") country: String): Single<List<Track>>
 
     @GET("v1/artists/{artistId}/albums")
-    fun getArtistAlbums(@Path("artistId") artistId: String): Observable<List<Album>>
+    fun getArtistAlbums(
+        @Path("artistId") artistId: String,
+        @Query("include_groups") groups: String
+    ): Observable<List<Album>>
 
     @GET("v1/albums/{albumId}/tracks")
     fun getAlbumsTracks(@Path("albumId") albumId: String): Observable<List<Track>>

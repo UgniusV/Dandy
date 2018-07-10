@@ -3,10 +3,13 @@ package com.dandy.ugnius.dandy.artist.common
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.os.Bundle
+import android.os.Parcelable
 import android.support.v7.graphics.Palette
 import io.reactivex.Maybe
 import android.support.v4.graphics.ColorUtils
 import android.util.TypedValue
+import android.view.WindowManager
 
 
 fun <T> List<T?>.secondOrNull(): T? = if (size > 1) get(1) else null
@@ -64,3 +67,37 @@ fun dpToPx(context: Context, dp: Int): Int {
     val metrics = context.resources.displayMetrics
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), metrics).toInt()
 }
+
+//fun getNavigationBarHeight(windowManager: WindowManager, context: Context)
+
+
+/*
+    public static int getNavigationBarHeight(WindowManager windowManager, Context context) {
+        if (hasNavigationBar(windowManager)) {
+            int navigationBarHeight = 0;
+            int resourceId = context.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+            if (resourceId > 0) {
+                navigationBarHeight = context.getResources().getDimensionPixelSize(resourceId);
+            }
+
+            return navigationBarHeight;
+        } else {
+            return 0;
+        }
+    }
+ */
+
+/*
+    public static boolean hasNavigationBar(WindowManager windowManager) {
+        Display d = windowManager.getDefaultDisplay();
+        DisplayMetrics realDisplayMetrics = new DisplayMetrics();
+        d.getRealMetrics(realDisplayMetrics);
+        int realHeight = realDisplayMetrics.heightPixels;
+        int realWidth = realDisplayMetrics.widthPixels;
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        d.getMetrics(displayMetrics);
+        int displayHeight = displayMetrics.heightPixels;
+        int displayWidth = displayMetrics.widthPixels;
+        return (realWidth - displayWidth) > 0 || (realHeight - displayHeight) > 0;
+    }
+ */

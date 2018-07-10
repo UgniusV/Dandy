@@ -1,18 +1,18 @@
-package com.dandy.ugnius.dandy.artist.model.entities
+package com.dandy.ugnius.dandy.model.entities
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 
 class Track(
-    var images: List<String>?,
-    val artists: String?,
+    var images: List<String>,
+    val artists: String,
     val duration: Long,
     val explicit: Boolean,
-    val id: String?,
-    val name: String?,
-    val uri: String?
+    val id: String,
+    val name: String,
+    val uri: String
 ) : Parcelable {
+
 
     constructor(parcel: Parcel) : this(
         parcel.createStringArrayList(),
@@ -47,4 +47,9 @@ class Track(
             return arrayOfNulls(size)
         }
     }
+
+
+    override fun equals(other: Any?) = (other as? Track)?.id == id
+
+    override fun hashCode() = 31 * 17 + id.hashCode()
 }

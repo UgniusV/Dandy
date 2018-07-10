@@ -18,16 +18,23 @@ import com.spotify.sdk.android.authentication.AuthenticationResponse.Type.TOKEN
 import kotlinx.android.synthetic.main.activity_login.*
 import android.app.PendingIntent
 import android.media.session.MediaSession
+import android.provider.Settings
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import com.App
+import com.spotify.sdk.android.player.SpotifyPlayer
+import java.security.AccessController.getContext
+import javax.inject.Inject
 
 
 class LoginActivity : AppCompatActivity() {
 
+    @Inject lateinit var player: SpotifyPlayer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        (applicationContext as App).mainComponent?.inject(this)
         dandyAnimation.addAnimatorUpdateListener {
             if (it.animatedFraction == 1F) {
                 dandyAnimation.reverseAnimationSpeed()

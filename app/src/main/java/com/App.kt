@@ -6,12 +6,16 @@ import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_LOW
 import android.app.Notification.VISIBILITY_PUBLIC
 import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.O
 import com.dandy.ugnius.dandy.di.components.DaggerMainComponent
 import com.dandy.ugnius.dandy.di.components.MainComponent
 import com.dandy.ugnius.dandy.di.modules.UtilitiesModule
 import com.dandy.ugnius.dandy.player.receiver.StreamingNotificationReceiver
+import android.net.ConnectivityManager.CONNECTIVITY_ACTION
+import com.dandy.ugnius.dandy.player.receivers.ConnectionStateReceiver
+import org.greenrobot.eventbus.EventBus
 
 class App : Application() {
 
@@ -30,14 +34,14 @@ class App : Application() {
         super.onCreate()
         createDependencyGraph()
         createNotificationChannelIfNeeded()
-        val broadcastReceiver = StreamingNotificationReceiver()
         val intentFilter = IntentFilter().apply {
             addAction(NOTIFICATION_ACTION_PLAY)
             addAction(NOTIFICATION_ACTION_PAUSE)
             addAction(NOTIFICATION_ACTION_PREVIOUS)
             addAction(NOTIFICATION_ACTION_NEXT)
         }
-        registerReceiver(broadcastReceiver, intentFilter)
+        registerReceiver(StreamingNotificationReceiver(), intentFilter)
+        registerReceiver(ConnectionStateReceiver(), IntentFilter(CONNECTIVITY_ACTION))
     }
 
     private fun createDependencyGraph() {

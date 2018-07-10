@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.R
-import com.dandy.ugnius.dandy.artist.model.entities.Artist
+import com.dandy.ugnius.dandy.model.entities.Artist
 import com.dandy.ugnius.dandy.artist.common.secondOrNull
 import kotlinx.android.synthetic.main.similar_artist_cell_entry.view.*
 

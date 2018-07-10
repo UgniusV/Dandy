@@ -8,16 +8,16 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.R
-import com.dandy.ugnius.dandy.artist.model.entities.Track
+import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.artist.common.secondOrNull
 import kotlinx.android.synthetic.main.track_cell_entry.view.*
 
 class TracksAdapter(
     context: Context,
-    private val onTrackClicked: (Int, ArrayList<Track>) -> Unit
+    private val onTrackClicked: (String) -> Unit
 ) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
 
-    var entries = arrayListOf<Track>()
+    var entries = listOf<Track>()
     set(value) {
         field = value
         notifyDataSetChanged()
@@ -37,11 +37,11 @@ class TracksAdapter(
         with(holder.itemView) {
             val entry = entries[position]
             trackIndex.text = (position + 1).toString()
-            entry.images?.secondOrNull()?.let { requestManager.load(it).into(trackImage) }
+            requestManager.load(entry.images[1]).into(trackImage)
             trackTitle.text = entry.name
             trackArtist.text = entry.artists
             trackDuration.text = DateUtils.formatElapsedTime(entry.duration / 1000)
-            setOnClickListener { onTrackClicked(position, entries) }
+            setOnClickListener { onTrackClicked(entry.id) }
         }
     }
 

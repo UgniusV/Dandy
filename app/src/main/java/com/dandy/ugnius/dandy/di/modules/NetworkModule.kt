@@ -1,13 +1,12 @@
 package com.dandy.ugnius.dandy.di.modules
 
 import android.content.SharedPreferences
-import com.dandy.ugnius.dandy.artist.model.APIClient
-import com.dandy.ugnius.dandy.artist.model.entities.Album
-import com.dandy.ugnius.dandy.artist.model.entities.Artist
-import com.dandy.ugnius.dandy.artist.model.entities.Track
-import com.dandy.ugnius.dandy.artist.model.entities.deserializers.AlbumsDeserializer
-import com.dandy.ugnius.dandy.artist.model.entities.deserializers.ArtistDeserializer
-import com.dandy.ugnius.dandy.artist.model.entities.deserializers.TracksDeserializer
+import com.dandy.ugnius.dandy.model.clients.APIClient
+import com.dandy.ugnius.dandy.model.deserializers.*
+import com.dandy.ugnius.dandy.model.entities.Album
+import com.dandy.ugnius.dandy.model.entities.Artist
+import com.dandy.ugnius.dandy.model.entities.Track
+import com.dandy.ugnius.dandy.model.entities.PlaybackInfo
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -44,6 +43,8 @@ class NetworkModule {
         val artistsListType = TypeToken.getParameterized(List::class.java, Artist::class.java).type
         val builder = GsonBuilder().apply {
             setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            registerTypeAdapter(Track::class.java, TrackDeserializer())
+            registerTypeAdapter(PlaybackInfo::class.java, PlaybackInfoDeserializer())
             registerTypeAdapter(trackListType, TracksDeserializer())
             registerTypeAdapter(albumsListType, AlbumsDeserializer())
             registerTypeAdapter(artistsListType, ArtistDeserializer())

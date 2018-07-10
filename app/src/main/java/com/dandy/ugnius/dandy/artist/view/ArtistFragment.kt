@@ -17,6 +17,7 @@ import android.support.v4.view.PagerAdapter
 import android.support.v7.graphics.Palette
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,22 +27,20 @@ import com.bumptech.glide.request.transition.Transition
 import com.dandy.ugnius.dandy.artist.common.adjustColorLightness
 import com.dandy.ugnius.dandy.artist.common.extractDominantSwatch
 import com.dandy.ugnius.dandy.artist.common.getNumberOfColumns
-import com.dandy.ugnius.dandy.artist.model.entities.Album
-import com.dandy.ugnius.dandy.artist.model.entities.Artist
-import com.dandy.ugnius.dandy.artist.model.entities.Track
+import com.dandy.ugnius.dandy.model.entities.Album
+import com.dandy.ugnius.dandy.model.entities.Artist
+import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.artist.presenter.ArtistPresenter
 import android.support.v7.widget.RecyclerView.VERTICAL
-import android.widget.LinearLayout
 import com.App
 import com.dandy.ugnius.dandy.R
-import com.dandy.ugnius.dandy.artist.model.APIClient
+import com.dandy.ugnius.dandy.model.clients.APIClient
 import com.dandy.ugnius.dandy.artist.view.decorations.VerticalGridDecorator
 import com.dandy.ugnius.dandy.artist.view.adapters.AlbumsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.SimilarArtistsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.TracksAdapter
 import com.dandy.ugnius.dandy.artist.view.interfaces.ArtistFragmentDelegate
 import io.reactivex.rxkotlin.subscribeBy
-import kotlinx.android.synthetic.main.artist_recycler.view.*
 import kotlinx.android.synthetic.main.view_artist.*
 import com.dandy.ugnius.dandy.main.MainActivity
 import javax.inject.Inject
@@ -54,10 +53,12 @@ class ArtistFragment : Fragment(), ArtistView {
 
     @Inject lateinit var apiClient: APIClient
     private val presenter by lazy { ArtistPresenter(apiClient, this) }
-    private val tracksAdapter by lazy { TracksAdapter(context!!, { position, tracks -> delegate?.onArtistTrackClicked(position, tracks) }) }
+    private val tracksAdapter by lazy { TracksAdapter(context!!, { id -> (this::onArtistTrackClicked)(id) }) }
     private val albumsAdapter by lazy { AlbumsAdapter(context!!) }
     private val similarArtistsAdapter by lazy { SimilarArtistsAdapter(context!!) }
     private var delegate: ArtistFragmentDelegate? = null
+    private var allTracks: List<Track>? = null
+    private var topTracks: List<Track>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,33 +69,35 @@ class ArtistFragment : Fragment(), ArtistView {
         return inflater.inflate(R.layout.view_artist, container, false)
     }
 
-    override fun onStart() {
-        super.onStart()
-        arguments?.getString("artistId")?.let {
-            with(presenter) {
-                queryArtist(it)
-                queryTopTracks(it, "ES")
-                queryAlbums(it)
-                querySimilarArtists(it)
-            }
-        }
-        artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
-        artistPager.adapter = ArtistPagerAdapter(context!!)
-        artistPagerTabs.setupWithViewPager(artistPager)
-    }
-
     override fun onAttach(context: Context?) {
         super.onAttach(context)
         delegate = context as? MainActivity
     }
 
+    override fun onStart() {
+        super.onStart()
+        arguments?.getString("artistId")?.let { presenter.query(it, "ES", "album,single") }
+        artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
+        artistPager.adapter = ArtistPagerAdapter(context!!)
+        artistPagerTabs.setupWithViewPager(artistPager)
+    }
+
+    override fun setAllTracks(allTracks: List<Track>) {
+        this.allTracks = allTracks
+    }
+
+    private fun onArtistTrackClicked(currentTrackId: String) {
+        allTracks?.let { delegate?.onArtistTrackClicked(currentTrackId, it) }
+    }
+
     override fun setArtistInfo(artist: Artist) {
-        val monthlyListeners = String.format(getString(R.string.monthly_listeners, artist.followers?.total ?: 0))
+        val monthlyListeners = String.format(getString(R.string.monthly_listeners, artist.followers?.total
+            ?: 0))
         listeners.text = monthlyListeners
         collapsingLayout.title = artist.name
         Glide.with(context ?: return)
             .asBitmap()
-            .load(artist.images.first()?.url)
+            .load(artist.images.first().url)
             .into(object : SimpleTarget<Bitmap>(background.width, background.height) {
                 override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                     background.setImageBitmap(resource)
@@ -107,7 +110,7 @@ class ArtistFragment : Fragment(), ArtistView {
             })
     }
 
-    override fun setArtistTracks(tracks: ArrayList<Track>) {
+    override fun setArtistTracks(tracks: List<Track>) {
         tracksAdapter.entries = tracks
     }
 
@@ -121,6 +124,14 @@ class ArtistFragment : Fragment(), ArtistView {
 
     override fun showError(message: String) {
         //todo show lottie error
+    }
+
+    override fun showLoader() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun hideLoader() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     private fun setAccentColor(swatch: Palette.Swatch) {
@@ -160,7 +171,6 @@ class ArtistFragment : Fragment(), ArtistView {
         }
     }
 
-    //todo refactor this a bit maybe avoid using linear layout as a parent
     private inner class ArtistPagerAdapter(private val context: Context) : PagerAdapter() {
 
         private val inflater = LayoutInflater.from(context)
@@ -170,26 +180,26 @@ class ArtistFragment : Fragment(), ArtistView {
         override fun isViewFromObject(view: android.view.View, `object`: Any) = view == `object`
 
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
-            val layout = inflater.inflate(R.layout.artist_recycler, container, false) as LinearLayout
+            val artistRecycler = inflater.inflate(R.layout.artist_recycler, container, false) as RecyclerView
             when (position) {
                 0 -> {
-                    layout.artistRecycler.layoutManager = LinearLayoutManager(context)
-                    layout.artistRecycler.adapter = tracksAdapter
+                    artistRecycler.layoutManager = LinearLayoutManager(context)
+                    artistRecycler.adapter = tracksAdapter
                 }
                 1 -> {
                     val columnCount = getNumberOfColumns(context, columnWidth = 180)
                     val decoration = VerticalGridDecorator(context, 16, columnCount)
-                    layout.artistRecycler.addItemDecoration(decoration)
-                    layout.artistRecycler.layoutManager = GridLayoutManager(context, columnCount, VERTICAL, false)
-                    layout.artistRecycler.adapter = albumsAdapter
+                    artistRecycler.addItemDecoration(decoration)
+                    artistRecycler.layoutManager = GridLayoutManager(context, columnCount, VERTICAL, false)
+                    artistRecycler.adapter = albumsAdapter
                 }
                 2 -> {
-                    layout.artistRecycler.layoutManager = GridLayoutManager(context, 3, VERTICAL, false)
-                    layout.artistRecycler.adapter = similarArtistsAdapter
+                    artistRecycler.adapter = similarArtistsAdapter
+                    artistRecycler.layoutManager = GridLayoutManager(context, 3, VERTICAL, false)
                 }
             }
-            container.addView(layout)
-            return layout
+            container.addView(artistRecycler)
+            return artistRecycler
         }
 
         override fun destroyItem(container: ViewGroup, position: Int, view: Any) {
