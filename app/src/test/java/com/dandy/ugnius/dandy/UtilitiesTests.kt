@@ -12,7 +12,7 @@ class UtilitiesTests {
         val firstTrack = Track(
             emptyList<String>(),
             "Schoolboy Q & Tyler, The Creator",
-            2000L,
+            "3:54",
             true,
             "4QNpBfC0zvjKqPJcyqBy9W",
             "The Purge",
@@ -22,7 +22,7 @@ class UtilitiesTests {
         val secondTrack = Track(
             emptyList<String>(),
             "Schoolboy Q",
-            3000L,
+            "3:54",
             false,
             "4QNpBfC0zvjKqPJcyqBy9W",
             "Oxymoron",
@@ -33,7 +33,7 @@ class UtilitiesTests {
         val thirdTrack = Track(
             emptyList<String>(),
             "Schoolboy Q",
-            203340L,
+            "3:54",
             true,
             "4QNpBfC0zvjKqPJcyqBy9W",
             "Man of the year",
@@ -44,7 +44,7 @@ class UtilitiesTests {
         val fourthTrack = Track(
             emptyList<String>(),
             "Tyler, The Creator",
-            2011000L,
+            "2:51",
             false,
             "13plQdOoWSSXPRUSZc5FuM",
             "Golden",

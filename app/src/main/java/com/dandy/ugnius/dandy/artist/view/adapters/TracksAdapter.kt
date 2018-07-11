@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.track_cell_entry.view.*
 
 class TracksAdapter(
     context: Context,
-    private val onTrackClicked: (String) -> Unit
+    private val onTrackClicked: (Track) -> Unit
 ) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
 
     var entries = listOf<Track>()
@@ -40,8 +40,8 @@ class TracksAdapter(
             requestManager.load(entry.images[1]).into(trackImage)
             trackTitle.text = entry.name
             trackArtist.text = entry.artists
-            trackDuration.text = DateUtils.formatElapsedTime(entry.duration / 1000)
-            setOnClickListener { onTrackClicked(entry.id) }
+            trackDuration.text = entry.duration
+            setOnClickListener { onTrackClicked(entry) }
         }
     }
 

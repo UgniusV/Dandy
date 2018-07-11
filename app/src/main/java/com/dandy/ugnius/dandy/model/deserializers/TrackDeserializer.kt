@@ -1,5 +1,6 @@
 package com.dandy.ugnius.dandy.model.deserializers
 
+import android.text.format.DateUtils
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
@@ -21,7 +22,7 @@ class TrackDeserializer : JsonDeserializer<Track> {
             Track(
                 images,
                 artists.joinToString(" & "),
-                get("duration_ms").asLong,
+                DateUtils.formatElapsedTime(get("duration_ms").asLong / 1000),
                 get("explicit").asString == "true",
                 get("id").asString,
                 get("name").asString,

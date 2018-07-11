@@ -6,7 +6,7 @@ import android.os.Parcelable
 class Track(
     var images: List<String>,
     val artists: String,
-    val duration: Long,
+    val duration: String,
     val explicit: Boolean,
     val id: String,
     val name: String,
@@ -17,7 +17,7 @@ class Track(
     constructor(parcel: Parcel) : this(
         parcel.createStringArrayList(),
         parcel.readString(),
-        parcel.readLong(),
+        parcel.readString(),
         parcel.readInt() == 1,
         parcel.readString(),
         parcel.readString(),
@@ -27,7 +27,7 @@ class Track(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeStringList(images)
         parcel.writeString(artists)
-        parcel.writeLong(duration)
+        parcel.writeString(duration)
         parcel.writeInt(if (explicit) 1 else 0)
         parcel.writeString(id)
         parcel.writeString(name)
@@ -49,7 +49,18 @@ class Track(
     }
 
 
-    override fun equals(other: Any?) = (other as? Track)?.id == id
+    override fun equals(other: Any?): Boolean {
+       return if (other is Track) {
+            other.id == this.id && other.duration == this.duration
+        } else {
+            false
+        }
+    }
 
-    override fun hashCode() = 31 * 17 + id.hashCode()
+    override fun hashCode(): Int {
+        var result = 17
+        result = 31 * result + id.hashCode()
+        result = 31 * result + duration.hashCode()
+        return result
+    }
 }

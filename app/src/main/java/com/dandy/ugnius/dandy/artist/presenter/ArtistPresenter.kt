@@ -10,6 +10,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.toObservable
+import java.text.SimpleDateFormat
 import kotlin.collections.ArrayList
 
 class ArtistPresenter(private val APIClient: APIClient, private val artistsView: ArtistView) {
@@ -67,16 +68,19 @@ class ArtistPresenter(private val APIClient: APIClient, private val artistsView:
                     album.also { it.tracks = tracks }
                 }
             )
-            .toList()
+            //todo ar tikrai geras cia sortas
+            .toSortedList { lhs, rhs ->
+                val format = SimpleDateFormat("yyyy-mm-dd")
+                format.parse(rhs.releaseDate).compareTo(format.parse(lhs.releaseDate))
+            }
             .observeOn(AndroidSchedulers.mainThread())
             .zipWith(
                 APIClient.getArtistTopTracks(artistId, market),
                 BiFunction { albums: List<Album>, topTracks: List<Track> ->
                     with(artistsView) {
+                        albums.forEach { println("album ${it.name} release date ${it.releaseDate}") }
                         val allTracks = LinkedHashSet<Track>(topTracks + albums.flatMap { it.tracks })
-                        val allTracksArray = ArrayList(allTracks)
-                        allTracksArray.forEach { println("flow: name ${it.name} id ${it.id} duration ${it.duration}") }
-                        setAllTracks(allTracksArray)
+                        setAllTracks(ArrayList(allTracks))
                         setArtistTracks(ArrayList(topTracks))
                         setArtistsAlbums(albums)
                     }
