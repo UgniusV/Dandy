@@ -53,7 +53,7 @@ class ArtistFragment : Fragment(), ArtistView {
 
     @Inject lateinit var apiClient: APIClient
     private val presenter by lazy { ArtistPresenter(apiClient, this) }
-    private val tracksAdapter by lazy { TracksAdapter(context!!, { id -> (this::onArtistTrackClicked)(id) }) }
+    private val tracksAdapter by lazy { TracksAdapter(context!!, { currentTrack -> (this::onArtistTrackClicked)(currentTrack) }) }
     private val albumsAdapter by lazy { AlbumsAdapter(context!!) }
     private val similarArtistsAdapter by lazy { SimilarArtistsAdapter(context!!) }
     private var delegate: ArtistFragmentDelegate? = null
@@ -86,28 +86,30 @@ class ArtistFragment : Fragment(), ArtistView {
         this.allTracks = allTracks
     }
 
-    private fun onArtistTrackClicked(currentTrackId: String) {
-        allTracks?.let { delegate?.onArtistTrackClicked(currentTrackId, it) }
+    private fun onArtistTrackClicked(currentTrack: Track) {
+        allTracks?.let { delegate?.onArtistTrackClicked(currentTrack, it) }
     }
 
     override fun setArtistInfo(artist: Artist) {
-        val monthlyListeners = String.format(getString(R.string.monthly_listeners, artist.followers?.total
-            ?: 0))
-        listeners.text = monthlyListeners
-        collapsingLayout.title = artist.name
-        Glide.with(context ?: return)
-            .asBitmap()
-            .load(artist.images.first().url)
-            .into(object : SimpleTarget<Bitmap>(background.width, background.height) {
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    background.setImageBitmap(resource)
-                    resource.extractDominantSwatch()
-                        .subscribeBy(
-                            onSuccess = { setAccentColor(it) },
-                            onComplete = { artistPager.background = ColorDrawable(WHITE) }
-                        )
-                }
-            })
+        view?.post {
+            val monthlyListeners = String.format(getString(R.string.monthly_listeners, artist.followers?.total
+                ?: 0))
+            listeners.text = monthlyListeners
+            collapsingLayout.title = artist.name
+            Glide.with(context ?: return@post)
+                .asBitmap()
+                .load(artist.images.first().url)
+                .into(object : SimpleTarget<Bitmap>(background.width, background.height) {
+                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        background.setImageBitmap(resource)
+                        resource.extractDominantSwatch()
+                            .subscribeBy(
+                                onSuccess = { setAccentColor(it) },
+                                onComplete = { artistPager.background = ColorDrawable(WHITE) }
+                            )
+                    }
+                })
+        }
     }
 
     override fun setArtistTracks(tracks: List<Track>) {

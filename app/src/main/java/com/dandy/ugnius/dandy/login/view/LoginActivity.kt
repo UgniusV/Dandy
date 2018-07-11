@@ -68,7 +68,7 @@ class LoginActivity : AppCompatActivity() {
         if (requestCode == LOGIN_REQUEST_CODE) {
             val response = AuthenticationClient.getResponse(resultCode, intent);
             if (response.type == TOKEN) {
-                val authenticationPreferences = getSharedPreferences("authentication_preferences", Context.MODE_PRIVATE)
+                val authenticationPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE)
                 authenticationPreferences?.edit()?.putString("access_token", response.accessToken)?.apply()
                 goToMainActivity()
             }

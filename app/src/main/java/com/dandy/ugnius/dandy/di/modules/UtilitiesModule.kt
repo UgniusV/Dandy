@@ -16,17 +16,17 @@ import dagger.Provides
 import javax.inject.Singleton
 
 @Module
-class UtilitiesModule(private val context: Context?) {
+class UtilitiesModule(private val context: Context) {
 
     //todo cia reikia pasidaryti custom scopa
     @Singleton
     @Provides
-    fun provideContext(): Context? = context
+    fun provideContext(): Context = context
 
     @Singleton
     @Provides
-    fun provideAuthenticationPreferences(context: Context?): SharedPreferences? {
-        return context?.getSharedPreferences("authentication_preferences", MODE_PRIVATE)
+    fun provideAuthenticationPreferences(context: Context): SharedPreferences {
+        return context.getSharedPreferences("preferences", MODE_PRIVATE)
     }
 
     @Singleton
@@ -40,9 +40,9 @@ class UtilitiesModule(private val context: Context?) {
 
     @Singleton
     @Provides
-    fun provideNotificationBuilder(context: Context?) = NotificationCompat.Builder(context!!, CHANNEL_ID)
+    fun provideNotificationBuilder(context: Context) = NotificationCompat.Builder(context, CHANNEL_ID)
 
     @Singleton
     @Provides
-    fun provideGlide(context: Context?) = Glide.with(context!!)
+    fun provideGlide(context: Context) = Glide.with(context)
 }

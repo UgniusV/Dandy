@@ -3,6 +3,7 @@ package com.dandy.ugnius.dandy.player.view
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.PaintDrawable
@@ -34,10 +35,12 @@ import com.dandy.ugnius.dandy.*
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.artist.common.adjustColorLightness
 import com.dandy.ugnius.dandy.artist.common.extractDominantSwatch
+import com.dandy.ugnius.dandy.artist.common.random
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.login.view.LoginActivity
 import com.dandy.ugnius.dandy.model.clients.APIClient
 import com.dandy.ugnius.dandy.player.presenter.PlayerPresenter
+import com.github.florent37.viewanimator.ViewAnimator
 import com.spotify.sdk.android.player.*
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.view_player.*
@@ -47,25 +50,14 @@ import javax.inject.Inject
 
 class PlayerFragment : Fragment(), PlayerView {
 
-    @Inject
-    lateinit var player: SpotifyPlayer
-    @Inject
-    lateinit var notificationBuilder: NotificationCompat.Builder
-    private val playerPresenter by lazy { PlayerPresenter(player, this) }
-    private lateinit var tracks: List<Track>
-    private lateinit var currentTrackId: String
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        (activity?.applicationContext as App).mainComponent?.inject(this)
-        val authenticationPreferences = context?.getSharedPreferences("authentication_preferences", Context.MODE_PRIVATE)
-        val accessToken = authenticationPreferences?.getString("access_token", "") ?: ""
-        val playerConfig = Config(context, accessToken, CLIENT_ID)
-        player = Spotify.getPlayer(playerConfig, activity, null)
-    }
+    @Inject lateinit var player: SpotifyPlayer
+    @Inject lateinit var notificationBuilder: NotificationCompat.Builder
+    @Inject lateinit var preferences: SharedPreferences
+    private val playerPresenter by lazy { PlayerPresenter(this).also { it.player = player } }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        (activity?.applicationContext as App).mainComponent?.inject(this)
+        playerPresenter.setState(savedInstanceState)
         return inflater.inflate(R.layout.view_player, container, false)
     }
 
@@ -73,19 +65,16 @@ class PlayerFragment : Fragment(), PlayerView {
         super.onStart()
         setListeners()
         seekbar.setPadding(0, 0, 0, 0)
-        arguments?.getString("currentTrackId")?.let { currentTrackId = it }
-        arguments?.getParcelableArrayList<Track>("tracks")?.let { tracks = it }
-        tracks.find { it.id == currentTrackId }?.let { update(it) }
-
+        arguments?.putBoolean("shuffle", preferences.getBoolean("shuffle", false))
+        playerPresenter.setState(arguments)
+        view?.post { playerPresenter.playTrack() }
     }
 
     override fun update(track: Track) {
-        currentTrackId = track.id
         with(track) {
             trackTitle.text = name
             artistTitle.text = artists
             updateArtwork(this)
-            playerPresenter.playTrack(track.uri)
         }
     }
 
@@ -93,7 +82,7 @@ class PlayerFragment : Fragment(), PlayerView {
         Glide.with(context ?: return)
             .asBitmap()
             .load(track.images.first())
-            .into(object : SimpleTarget<Bitmap>() {
+            .into(object : SimpleTarget<Bitmap>(artwork.width, artwork.height) {
                 override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                     artwork?.setImageBitmap(resource)
                     resource.extractDominantSwatch()
@@ -101,30 +90,32 @@ class PlayerFragment : Fragment(), PlayerView {
                             onSuccess = { setAccentColor(it) },
                             onComplete = { playbackControls.background = ColorDrawable(Color.WHITE) }
                         )
-                    track.let { showNotification(resource, it) }
+//                    track.let { showNotification(resource, it) }
                 }
             })
     }
 
     private fun setListeners() {
-        previous.setOnClickListener {
-            playerPresenter.skipToPrevious(currentTrackId, tracks)
-        }
-        next.setOnClickListener {
-            playerPresenter.skipToNext(currentTrackId, tracks)
-        }
+        previous.setOnClickListener { playerPresenter.skipToPrevious() }
+        next.setOnClickListener { playerPresenter.skipToNext() }
         play.setOnClickListener { playerPresenter.pause() }
-//        shuffle.setOnClickListener { presenter.shuffle(true) }
+        shuffle.setOnClickListener {
+            ViewAnimator.animate(shuffle)
+                .scale(0F, 0.5F)
+                .start()
+            preferences.edit().putBoolean("shuffle", true).apply()
+            playerPresenter.toggleShuffle()
+        }
     }
 
     //todo iskelti situos
     private fun setAccentColor(swatch: Palette.Swatch) {
-//        val transparentWhite = ContextCompat.getColor(context!!, R.color.transparentWhite)
-//        val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.5F)
-//        val adjustedColor = adjustColorLightness(color = swatch.rgb, lightness = 0.6F)
-//        seekbar.progressDrawable.setColorFilter(adjustedColor, MULTIPLY);
-//        seekbar.thumb.setColorFilter(adjustedColor, MULTIPLY)
-//        createShader(playbackControls, blendedColor)
+        val transparentWhite = ContextCompat.getColor(context!!, R.color.opaqueWhite)
+        val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.1F)
+        val adjustedColor = adjustColorLightness(color = swatch.rgb, lightness = 0.2F)
+        seekbar.progressDrawable.setColorFilter(adjustedColor, MULTIPLY);
+        seekbar.thumb.setColorFilter(adjustedColor, MULTIPLY)
+        createShader(playbackControls, blendedColor)
     }
 
     private fun createShader(view: android.view.View, color: Int) {
@@ -136,7 +127,7 @@ class PlayerFragment : Fragment(), PlayerView {
                     (width / 2).toFloat(),
                     (view.height).toFloat(),
                     intArrayOf(color, Color.WHITE, Color.WHITE),
-                    floatArrayOf(0F, 0.2f, 1f),
+                    floatArrayOf(0f, 0.3f, 1f),
                     Shader.TileMode.CLAMP
                 )
             }
@@ -157,9 +148,9 @@ class PlayerFragment : Fragment(), PlayerView {
         val previousIntent = Intent(NOTIFICATION_ACTION_PREVIOUS)
         val nextIntent = Intent(NOTIFICATION_ACTION_NEXT)
 
-        tracks?.elementAt(3)?.let {
-            nextIntent.putExtra("nextTrack", it)
-        }
+//        tracks?.elementAt(3)?.let {
+//            nextIntent.putExtra("nextTrack", it)
+//        }
 //        nextIntent.extras?.getParcelable<Track>("nextTrack")
 
         val startIntent = Intent(NOTIFICATION_ACTION_PLAY)
@@ -192,8 +183,12 @@ class PlayerFragment : Fragment(), PlayerView {
 
     }
 
+
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-//        tracks?.let { outState.putParcelableHashSet("tracks", it) }
+        playerPresenter.saveState(outState)
     }
+
+
 }
