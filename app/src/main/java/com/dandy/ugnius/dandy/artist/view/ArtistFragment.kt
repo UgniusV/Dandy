@@ -18,9 +18,6 @@ import android.support.v7.graphics.Palette
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
@@ -32,6 +29,7 @@ import com.dandy.ugnius.dandy.model.entities.Artist
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.artist.presenter.ArtistPresenter
 import android.support.v7.widget.RecyclerView.VERTICAL
+import android.view.*
 import com.App
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.model.clients.APIClient
@@ -51,7 +49,8 @@ class ArtistFragment : Fragment(), ArtistView {
         const val ARTIST_PAGER_ENTRIES_COUNT = 3
     }
 
-    @Inject lateinit var apiClient: APIClient
+    @Inject
+    lateinit var apiClient: APIClient
     private val presenter by lazy { ArtistPresenter(apiClient, this) }
     private val tracksAdapter by lazy { TracksAdapter(context!!, { currentTrack -> (this::onArtistTrackClicked)(currentTrack) }) }
     private val albumsAdapter by lazy { AlbumsAdapter(context!!) }
@@ -60,12 +59,22 @@ class ArtistFragment : Fragment(), ArtistView {
     private var allTracks: List<Track>? = null
     private var topTracks: List<Track>? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        (activity?.applicationContext as App).mainComponent?.inject(this)
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        (activity as MainActivity).menuInflater.inflate(R.menu.artist_toolbar_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return if (item?.itemId == R.id.actionFavorite) {
+            println("favorite was clicked")
+            true
+        } else {
+            return super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        (activity?.applicationContext as App).mainComponent?.inject(this)
         return inflater.inflate(R.layout.view_artist, container, false)
     }
 
@@ -77,9 +86,18 @@ class ArtistFragment : Fragment(), ArtistView {
     override fun onStart() {
         super.onStart()
         arguments?.getString("artistId")?.let { presenter.query(it, "ES", "album,single") }
-        artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
-        artistPager.adapter = ArtistPagerAdapter(context!!)
-        artistPagerTabs.setupWithViewPager(artistPager)
+        artistPager?.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
+        artistPager?.adapter = ArtistPagerAdapter(context!!)
+        artistPagerTabs?.setupWithViewPager(artistPager)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        setHasOptionsMenu(true)
+        with(activity as MainActivity) {
+            setSupportActionBar(toolbar)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        }
     }
 
     override fun setAllTracks(allTracks: List<Track>) {
@@ -140,14 +158,14 @@ class ArtistFragment : Fragment(), ArtistView {
         val adjustedColor = adjustColorLightness(color = swatch.rgb, lightness = 0.3F)
         val transparentWhite = ContextCompat.getColor(context!!, R.color.transparentWhite)
         val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.5F)
-        createShader(artistPager, blendedColor)
-        with(artistPagerTabs) {
-            setSelectedTabIndicatorColor(adjustedColor);
-            setTabTextColors(adjustedColor, adjustedColor)
+        artistPager?.let { createShader(it, blendedColor) }
+        artistPagerTabs?.let {
+            it.setSelectedTabIndicatorColor(adjustedColor);
+            it.setTabTextColors(adjustedColor, adjustedColor)
         }
-        with(collapsingLayout) {
-            setContentScrimColor(adjustedColor)
-            setStatusBarScrimColor(adjustedColor)
+        collapsingLayout?.let {
+            it.setContentScrimColor(adjustedColor)
+            it.setStatusBarScrimColor(adjustedColor)
         }
     }
 

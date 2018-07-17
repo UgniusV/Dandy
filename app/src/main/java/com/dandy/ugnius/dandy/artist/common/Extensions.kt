@@ -21,7 +21,7 @@ fun Bitmap.extractDominantSwatch(): Maybe<Palette.Swatch> {
             emitter.onComplete()
         } else {
             Palette.from(this).generate { palette ->
-                val swatch = palette.dominantSwatch
+                val swatch = palette.vibrantSwatch ?: palette.mutedSwatch ?: palette.darkVibrantSwatch ?: palette.dominantSwatch
                 if (swatch == null) {
                     emitter.onComplete()
                 } else {
@@ -30,6 +30,19 @@ fun Bitmap.extractDominantSwatch(): Maybe<Palette.Swatch> {
             }
         }
     }
+}
+
+fun <T> LinkedList<T>.removeWithIndex(item: T): Int {
+    val index = indexOf(item)
+    remove(item)
+    return index
+}
+
+fun adjustColorLuminance(color: Int, luminance: Float): Int {
+    val hsv = FloatArray(3)
+    Color.colorToHSV(color, hsv)
+    hsv[2] = luminance
+    return Color.HSVToColor(hsv)
 }
 
 fun adjustColorLightness(color: Int, lightness: Float) = if (lightness in 0F..1F) {
@@ -41,15 +54,6 @@ fun adjustColorLightness(color: Int, lightness: Float) = if (lightness in 0F..1F
 } else {
     throw IllegalArgumentException("Lightness parameter must be a value between 0F and 1F")
 
-}
-
-fun adjustColorBrightness(color: Int, brightness: Float) = if (brightness in 0F..1F) {
-    val hsv = FloatArray(3)
-    Color.colorToHSV(color, hsv)
-    hsv[2] = brightness
-    Color.HSVToColor(1, hsv)
-} else {
-    throw IllegalArgumentException("Brightness parameter must be a value between 0F and 1F")
 }
 
 fun getNumberOfColumns(context: Context, columnWidth: Int): Int {

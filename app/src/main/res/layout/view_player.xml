@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
-    android:clickable="true"
+    android:focusableInTouchMode="true"
+    android:focusable="true"
     android:orientation="vertical">
 
     <ImageView
@@ -12,147 +14,35 @@
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/longliveasap"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:src="@drawable/longliveasap" />
 
-    <android.support.constraint.ConstraintLayout
+    <include
         android:id="@+id/playbackControls"
+        layout="@layout/playback_controls"
         android:layout_width="match_parent"
-        android:layout_marginTop="-100dp"
         android:layout_height="match_parent"
-        android:layout_below="@id/artwork">
-
-        <TextView
-            android:id="@+id/trackTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:maxLines="1"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
-            android:textColor="@android:color/black"
-            android:textSize="23sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/artistTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:maxLines="1"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
-            android:textColor="@color/textSecondary"
-            android:textSize="17sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/trackTitle" />
-
-        <TextView
-            android:id="@+id/timeElapsed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:text="01:48"
-            android:textColor="@color/textSecondary"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/duration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:text="02:43"
-            android:textColor="@color/textSecondary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
-            android:id="@+id/playOrPause"
-            android:layout_width="65dp"
-            android:layout_height="65dp"
-            android:layout_marginTop="40dp"
-            android:src="@drawable/pause"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/artistTitle" />
-
-        <com.airbnb.lottie.LottieAnimationView
-            android:id="@+id/play"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/artistTitle"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"
-            app:lottie_rawRes="@raw/rejection" />
-
-        <ImageView
-            android:id="@+id/previous"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginEnd="52dp"
-            android:src="@drawable/back"
-            app:layout_constraintBottom_toBottomOf="@+id/playOrPause"
-            app:layout_constraintEnd_toStartOf="@+id/playOrPause"
-            app:layout_constraintTop_toTopOf="@+id/playOrPause" />
-
-        <ImageView
-            android:id="@+id/next"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="52dp"
-            android:src="@drawable/next"
-            app:layout_constraintBottom_toBottomOf="@+id/playOrPause"
-            app:layout_constraintStart_toEndOf="@+id/playOrPause"
-            app:layout_constraintTop_toTopOf="@+id/playOrPause" />
-
-        <ImageView
-            android:id="@+id/repeat"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginStart="16dp"
-            android:layout_marginBottom="16dp"
-            android:src="@drawable/replay"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <ImageView
-            android:id="@+id/shuffle"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:src="@drawable/shuffle"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-    </android.support.constraint.ConstraintLayout>
+        android:focusableInTouchMode="false"
+        android:focusable="false"
+        android:layout_below="@id/artwork"
+        android:layout_marginTop="-100dp"/>
 
     <SeekBar
         android:id="@+id/seekbar"
+        android:theme="@style/CustomSeekbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="292dp" />
+        android:splitTrack="false"
+        android:layout_marginTop="285dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="@drawable/faded_scrim" />
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:fitsSystemWindows="true"/>
 
 </RelativeLayout>

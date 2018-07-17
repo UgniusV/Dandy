@@ -47,6 +47,7 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'com.spotify.android:auth:1.0.0-alpha'
+    implementation 'com.joanzapata.iconify:android-iconify-typicons:2.2.2'
     implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
     implementation 'com.google.dagger:dagger:2.8'
     kapt 'com.google.dagger:dagger-compiler:2.5'

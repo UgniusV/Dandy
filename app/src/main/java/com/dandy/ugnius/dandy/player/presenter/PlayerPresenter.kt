@@ -1,11 +1,20 @@
 package com.dandy.ugnius.dandy.player.presenter
 
 import android.os.Bundle
+import android.os.Handler
+import com.dandy.ugnius.dandy.Utilities
 import com.dandy.ugnius.dandy.artist.common.random
+import com.dandy.ugnius.dandy.artist.common.removeWithIndex
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.player.view.PlayerView
 import com.spotify.sdk.android.player.*
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.rxkotlin.subscribeBy
+import kotlinx.android.synthetic.main.view_player.*
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class PlayerPresenter(private val playerView: PlayerView) {
 
@@ -18,18 +27,30 @@ class PlayerPresenter(private val playerView: PlayerView) {
     private lateinit var currentTrack: Track
     private var queue = LinkedHashSet<Track>()
     var shuffle: Boolean = false
+    private var isPaused = false
+    private lateinit var unmodifiableTracks: LinkedList<Track>
+    private val handler = Handler()
+    private val runnable = object : Runnable {
+        override fun run() {
+            if (playerView.hasTrackEnded()) {
+                skipToNext()
+                return
+            } else if (!isPaused) {
+                playerView.updateProgress()
+            }
+            handler.postDelayed(this, 1000)
+        }
+    }
 
     /**
      * Stata geriau saugoti presenteryje nes viewui maziau darbo uzkrausim
      */
 
-    //pasidaryti random metoda presenteryja
-
     fun skipToNext() {
         val nextTrackIndex = if (shuffle) {
             val hasQueueEnded = !queue.contains(currentTrack) || queue.indexOf(currentTrack) == queue.size - 1
             if (hasQueueEnded) {
-                (0 until tracks.size - 1).random()
+                if (tracks.size == 1) 0 else (0 until tracks.size - 1).random()
             } else {
                 val nextQueuedTrackIndex = queue.indexOf(currentTrack) + 1
                 currentTrack = queue.elementAt(nextQueuedTrackIndex)
@@ -38,7 +59,11 @@ class PlayerPresenter(private val playerView: PlayerView) {
                 return
             }
         } else {
-            tracks.indexOf(currentTrack) + 1
+            if (tracks.indexOf(currentTrack) == tracks.lastIndex) {
+                (0 until tracks.size - 1).random()
+            } else {
+                tracks.indexOf(currentTrack) + 1
+            }
         }
         val isValidIndex = nextTrackIndex != tracks.size
         if (isValidIndex) {
@@ -49,16 +74,20 @@ class PlayerPresenter(private val playerView: PlayerView) {
     }
 
     fun skipToPrevious() {
-        if (shuffle) {
-            val lastTrackIndex = queue.indexOf(currentTrack) - 1
-            currentTrack = if (lastTrackIndex == -1) queue.first() else queue.elementAt(lastTrackIndex)
-            println("flow: queue previous index $lastTrackIndex")
+        if (playerView.shouldRewind()) {
             playTrack()
         } else {
-            val previousTrackIndex = tracks.indexOf(currentTrack) - 1
-            currentTrack = if (previousTrackIndex == -1) tracks.first() else tracks[previousTrackIndex]
-            println("flow: previous track $previousTrackIndex")
-            playTrack()
+            if (shuffle) {
+                val lastTrackIndex = queue.indexOf(currentTrack) - 1
+                currentTrack = if (lastTrackIndex == -1) queue.first() else queue.elementAt(lastTrackIndex)
+                println("flow: queue previous index $lastTrackIndex")
+                playTrack()
+            } else {
+                val previousTrackIndex = tracks.indexOf(currentTrack) - 1
+                currentTrack = if (previousTrackIndex == -1) tracks.first() else tracks[previousTrackIndex]
+                println("flow: previous track $previousTrackIndex")
+                playTrack()
+            }
         }
     }
 
@@ -69,32 +98,58 @@ class PlayerPresenter(private val playerView: PlayerView) {
      */
 
     fun playTrack() {
+        tracks.forEachIndexed { index, track -> println("flow: track ${index} ${track.name}") }
         currentTrack.let {
             if (shuffle) {
                 queue.add(it)
                 tracks.remove(it)
-                //todo test this, this line resets the playback
-                if (tracks.isEmpty() || tracks.size == 1) {
-                    tracks.addAll(queue)
+                if (tracks.isEmpty()) {
+                    tracks = LinkedList(unmodifiableTracks)
                     queue.clear()
                 }
             }
             player?.pause(null)
             player?.playUri(null, it.uri, 0, 0)
+            handler.removeCallbacks(runnable)
+            handler.postDelayed(runnable, 300)
             playerView.update(currentTrack)
+            isPaused = false
+            playerView.updatePlayButton(isPaused)
         }
     }
 
-    fun pause() {
+    fun seekToPosition(position: Int) {
         player?.pause(null)
+        player?.seekToPosition(null, position * 1000)
+        Handler().postDelayed({
+            player?.resume(null)
+            isPaused = false
+            playerView.updatePlayButton(isPaused)
+        }, 300)
     }
 
-    fun resume() {
-        player?.resume(null)
+    fun togglePlayback() {
+        if (isPaused) {
+            player?.resume(null)
+            isPaused = false
+        } else {
+            player?.pause(null)
+            isPaused = true
+        }
+        playerView.updatePlayButton(isPaused)
     }
 
     fun toggleShuffle() {
-        shuffle = !shuffle
+        if (shuffle) {
+            shuffle = false
+            tracks = LinkedList(unmodifiableTracks)
+            queue.clear()
+            println("flow: track after shuffle")
+            tracks.forEachIndexed { index, track -> println("flow: track ${index} ${track.name}") }
+        } else {
+            shuffle = true
+        }
+        playerView.toggleShuffle(shuffle)
     }
 
     /*
@@ -106,15 +161,21 @@ class PlayerPresenter(private val playerView: PlayerView) {
     //todo save queu too
 
     fun setState(bundle: Bundle?) {
-        bundle?.getParcelableArrayList<Track>("tracks")?.let { tracks = LinkedList(it) }
+        bundle?.getParcelableArrayList<Track>("tracks")?.let {
+            tracks = LinkedList(it)
+            unmodifiableTracks = LinkedList(it)
+            //todo save this
+        }
         bundle?.getParcelable<Track>("currentTrack")?.let { currentTrack = it }
         bundle?.getBoolean("shuffle", shuffle)
+        bundle?.getBoolean("isPaused")?.let { isPaused = it }
     }
 
     fun saveState(bundle: Bundle) {
         bundle.putParcelableArrayList("tracks", ArrayList(tracks))
         bundle.putParcelable("currentTrack", currentTrack)
         bundle.putBoolean("shuffle", shuffle)
+        bundle.putBoolean("isPaused", isPaused)
     }
 
 }

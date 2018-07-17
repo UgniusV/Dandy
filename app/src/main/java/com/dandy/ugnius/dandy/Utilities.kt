@@ -27,4 +27,11 @@ object Utilities {
         "user-follow-modify",
         "user-follow-read"
     )
+
+    fun durationToSeconds(duration: String): Int {
+        val units = duration.split(":")
+        val minutes = Integer.parseInt(units[0])
+        val seconds = Integer.parseInt(units[1])
+        return 60 * minutes + seconds;
+    }
 }

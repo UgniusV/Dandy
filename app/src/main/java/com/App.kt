@@ -16,6 +16,10 @@ import com.dandy.ugnius.dandy.player.receiver.StreamingNotificationReceiver
 import android.net.ConnectivityManager.CONNECTIVITY_ACTION
 import com.dandy.ugnius.dandy.player.receivers.ConnectionStateReceiver
 import org.greenrobot.eventbus.EventBus
+import com.joanzapata.iconify.fonts.TypiconsModule
+import com.joanzapata.iconify.Iconify
+
+
 
 class App : Application() {
 
@@ -42,6 +46,7 @@ class App : Application() {
         }
         registerReceiver(StreamingNotificationReceiver(), intentFilter)
         registerReceiver(ConnectionStateReceiver(), IntentFilter(CONNECTIVITY_ACTION))
+        Iconify.with(TypiconsModule())
     }
 
     private fun createDependencyGraph() {
