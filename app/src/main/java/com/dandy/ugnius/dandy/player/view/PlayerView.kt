@@ -7,6 +7,7 @@ interface PlayerView {
     fun updateProgress()
     fun hasTrackEnded() : Boolean
     fun shouldRewind(): Boolean
-    fun updatePlayButton(isPaused: Boolean)
+    fun togglePlayButton(isPaused: Boolean)
     fun toggleShuffle(shuffle: Boolean)
+    fun toggleReplay(replay: Boolean)
 }

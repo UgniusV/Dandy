@@ -77,6 +77,7 @@ class PlayerFragment : Fragment(), PlayerView {
     private var root: RelativeLayout? = null
     private var playbackControls: ConstraintLayout? = null
     private var toolbar: Toolbar? = null
+    private var replay: ImageView? = null
 
     override fun hasTrackEnded() = seekBar?.progress == seekBar?.max
 
@@ -121,6 +122,7 @@ class PlayerFragment : Fragment(), PlayerView {
             shuffle = findViewById(R.id.shuffle)
             root = findViewById(R.id.root)
             playbackControls = findViewById(R.id.playbackControls)
+            replay = findViewById(R.id.replay)
         }
         ViewCompat.requestApplyInsets(root)
         initializeViews()
@@ -130,11 +132,23 @@ class PlayerFragment : Fragment(), PlayerView {
 
     }
 
-    override fun updatePlayButton(isPaused: Boolean) {
+    override fun togglePlayButton(isPaused: Boolean) {
         if (isPaused) {
             playOrPause.setImageResource(R.drawable.play)
         } else {
             playOrPause.setImageResource(R.drawable.pause)
+        }
+    }
+
+    override fun toggleReplay(replay: Boolean) {
+        if (replay) {
+            ViewAnimator.animate(this.replay)
+                .scale(1F, 1.5F, 2F)
+                .start()
+        } else {
+            ViewAnimator.animate(this.replay)
+                .scale(2F, 1.5F, 1F)
+                .start()
         }
     }
 
@@ -143,6 +157,7 @@ class PlayerFragment : Fragment(), PlayerView {
         trackArtist?.isSelected = true
         seekBar?.setPadding(0, 0, 0, 0)
         previous?.setOnClickListener { playerPresenter.skipToPrevious() }
+        replay?.setOnClickListener { playerPresenter.toggleReplay() }
         next?.setOnClickListener { playerPresenter.skipToNext() }
         playOrPause.setOnClickListener { playerPresenter.togglePlayback() }
         shuffle?.setOnClickListener { playerPresenter.toggleShuffle() }

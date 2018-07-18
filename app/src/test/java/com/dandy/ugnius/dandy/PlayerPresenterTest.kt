@@ -1,95 +1,128 @@
 package com.dandy.ugnius.dandy
 
+import android.os.Bundle
+import com.dandy.ugnius.dandy.artist.common.fourth
+import com.dandy.ugnius.dandy.artist.common.second
+import com.dandy.ugnius.dandy.artist.common.third
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.player.presenter.PlayerPresenter
 import com.dandy.ugnius.dandy.player.view.PlayerView
-import com.spotify.sdk.android.player.SpotifyPlayer
 import org.junit.Test
 import org.mockito.Mockito.*
-import java.util.concurrent.TimeUnit
-import io.reactivex.android.plugins.RxAndroidPlugins
-import junit.framework.Assert
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
-
+import org.mockito.Mockito.`when`
+import org.junit.Before
+import org.junit.rules.ExpectedException
+import org.junit.Rule
 
 class PlayerPresenterTest {
 
     private val tracks = getTracks()
+    private lateinit var view: PlayerView
+    private lateinit var presenter: PlayerPresenter
+    private lateinit var bundle: Bundle
 
-    @Test
-    fun testSkippingWithoutShuffling() {
+    @get:Rule
+    var exceptions = ExpectedException.none()
 
-        //todo situos iskelti i virsu
-        val viewMock = mock(PlayerView::class.java)
-        val presenter = PlayerPresenter(viewMock)
-
-        //next skipping
-        presenter.skipToNext(currentTrack = tracks[0], tracks = tracks, shuffle = false, queue = emptySet(), randomNumber = 0)
-        verify(viewMock).update(tracks[1])
-        presenter.skipToNext(currentTrack = tracks[1], tracks = tracks, shuffle = false, queue = emptySet(), randomNumber = 0)
-        verify(viewMock).update(tracks[2])
-        presenter.skipToNext(currentTrack = tracks[2], tracks = tracks, shuffle = false, queue = emptySet(), randomNumber = 0)
-        verify(viewMock).update(tracks[3])
-        presenter.skipToNext(currentTrack = tracks[3], tracks = tracks, shuffle = false, queue = emptySet(), randomNumber = 0)
-        verify(viewMock).update(tracks[4])
-        presenter.skipToNext(currentTrack = tracks[4], tracks = tracks, shuffle = false, queue = emptySet(), randomNumber = 0)
-        verify(viewMock).update(tracks[5])
-        presenter.skipToNext(currentTrack = tracks[5], tracks = tracks, shuffle = false, queue = emptySet(), randomNumber = 0)
-        verify(viewMock).update(tracks[6])
-
-        //previous skipping
-        presenter.skipToPrevious(currentTrack = tracks[6], tracks = tracks, shuffle = false, queue = emptySet())
-        verify(viewMock, times(2)).update(tracks[5])
-        presenter.skipToPrevious(currentTrack = tracks[5], tracks = tracks, shuffle = false, queue = emptySet())
-        verify(viewMock, times(2)).update(tracks[4])
-        presenter.skipToPrevious(currentTrack = tracks[4], tracks = tracks, shuffle = false, queue = emptySet())
-        verify(viewMock, times(2)).update(tracks[3])
-        presenter.skipToPrevious(currentTrack = tracks[3], tracks = tracks, shuffle = false, queue = emptySet())
-        verify(viewMock, times(2)).update(tracks[2])
-        presenter.skipToPrevious(currentTrack = tracks[2], tracks = tracks, shuffle = false, queue = emptySet())
-        verify(viewMock, times(2)).update(tracks[1])
-        presenter.skipToPrevious(currentTrack = tracks[1], tracks = tracks, shuffle = false, queue = emptySet())
-        verify(viewMock).update(tracks[0])
-        presenter.skipToPrevious(currentTrack = tracks[0], tracks = tracks, shuffle = false, queue = emptySet())
-        verify(viewMock, times(2)).update(tracks[0])
+    @Before
+    fun init() {
+        view = mock(PlayerView::class.java)
+        bundle = mock(Bundle::class.java)
+        presenter = PlayerPresenter(view)
+        `when`(bundle.getParcelableArrayList<Track>("tracks")).thenReturn(tracks)
+        `when`(bundle.getParcelable<Track>("currentTrack")).thenReturn(tracks.first())
+        presenter.setState(bundle)
+        presenter.playTrack()
     }
 
-
-    //todo galbut pasidaryti koki play metoda
-
     @Test
-    fun testSkippingWithShuffling() {
-        val viewMock = mock(PlayerView::class.java)
-        val presenter = PlayerPresenter(viewMock)
-        val queue = LinkedHashSet<Track>()
-        queue.add(tracks[0])
-        presenter.skipToNext(currentTrack = tracks[0], tracks = tracks, shuffle = true, queue = queue, randomNumber = 3)
-        queue.add(tracks[3])
-        verify(viewMock).update(tracks[3])
-        presenter.skipToNext(currentTrack = tracks[3], tracks = tracks, shuffle = true, queue = queue, randomNumber = 7)
-        queue.add(tracks[7])
-        verify(viewMock).update(tracks[7])
-        presenter.skipToNext(currentTrack = tracks[7], tracks = tracks, shuffle = true, queue = queue, randomNumber = 14)
-        queue.add(tracks[14])
-        verify(viewMock).update(tracks[14])
-        presenter.skipToNext(currentTrack = tracks[14], tracks = tracks, shuffle = true, queue = queue, randomNumber = 12)
-        queue.add(tracks[12])
-        verify(viewMock).update(tracks[12])
-
-        presenter.skipToPrevious(currentTrack = tracks[12], tracks = tracks, shuffle = true, queue = queue)
-        verify(viewMock, times(2)).update(tracks[14])
-        presenter.skipToPrevious(currentTrack = tracks[14], tracks = tracks, shuffle = true, queue = queue)
-        verify(viewMock, times(2)).update(tracks[7])
-        presenter.skipToPrevious(currentTrack = tracks[7], tracks = tracks, shuffle = true, queue = queue)
-        verify(viewMock, times(2)).update(tracks[3])
-        presenter.skipToPrevious(currentTrack = tracks[3], tracks = tracks, shuffle = true, queue = queue)
-        verify(viewMock).update(tracks[0])
-        presenter.skipToPrevious(currentTrack = tracks[0], tracks = tracks, shuffle = true, queue = queue)
-        verify(viewMock, times(2)).update(tracks[0])
+    fun testRegularSkipping() {
+        with(presenter) {
+            skipToNext()
+            skipToNext()
+            skipToNext()
+            skipToPrevious()
+            skipToPrevious()
+            skipToPrevious()
+            skipToPrevious()
+        }
+        with(view) {
+            verify(this, times(3)).update(tracks.first())
+            verify(this, times(2)).update(tracks.second())
+            verify(this, times(2)).update(tracks.third())
+            verify(this).update(tracks.fourth())
+        }
     }
 
-    private fun getTracks(): List<Track> {
+    @Test
+    fun testShuffleSkipping() {
+        var firstShuffleTrack: Track? = null
+        var secondShuffleTrack: Track? = null
+        var thirdShuffleTrack: Track? = null
+        with(presenter) {
+            skipToNext()
+            skipToNext()
+            toggleShuffle()
+            firstShuffleTrack = skipToNext()
+            secondShuffleTrack = skipToNext()
+            skipToPrevious()
+            skipToPrevious()
+            skipToPrevious()
+            skipToPrevious()
+            skipToPrevious()
+            skipToNext()
+            skipToNext()
+            skipToNext()
+            skipToNext()
+            thirdShuffleTrack = skipToNext()
+            toggleShuffle()
+            skipToPrevious()
+            skipToNext()
+            skipToNext()
+        }
+
+        with(view) {
+            verify(this).toggleShuffle(true)
+            verify(this).toggleShuffle(false)
+            verify(this, atLeast(3)).update(tracks.first())
+            verify(this, atLeast(3)).update(tracks.second())
+            verify(this, atLeast(3)).update(tracks.third())
+            verify(this, atLeast(3)).update(firstShuffleTrack!!)
+            verify(this, atLeast(2)).update(secondShuffleTrack!!)
+            verify(this, atLeast(2)).update(thirdShuffleTrack!!)
+            if (tracks.indexOf(thirdShuffleTrack!!) !in 1..18) {
+                exceptions.expect(ArrayIndexOutOfBoundsException::class.java)
+            }
+            verify(this, atLeast(1)).update(tracks[tracks.indexOf(thirdShuffleTrack!!) - 1])
+            verify(this, atLeast(1)).update(tracks[tracks.indexOf(thirdShuffleTrack!!) + 1])
+        }
+    }
+
+    @Test
+    fun testPlaybackToggling() {
+        presenter.skipToNext()
+        presenter.togglePlayback()
+        presenter.skipToNext()
+        presenter.togglePlayback()
+        presenter.skipToPrevious()
+        verify(view, times(2)).togglePlayButton(true)
+        verify(view, times(4)).togglePlayButton(false)
+    }
+
+    @Test
+    fun testReplaying() {
+        presenter.toggleReplay()
+        `when`(view.hasTrackEnded()).thenReturn(true)
+        presenter.skipToNext()
+        `when`(view.hasTrackEnded()).thenReturn(false)
+        presenter.skipToNext()
+        presenter.skipToPrevious()
+        verify(view, times(3)).update(tracks.first())
+        verify(view).update(tracks.second())
+        verify(view).toggleReplay(true)
+    }
+
+    private fun getTracks(): ArrayList<Track> {
         val images = emptyList<String>()
         with(arrayListOf<Track>()) {
             add(Track(images, "ScHoolboy Q & 2 Chainz & Saudi", "04:27", true, "4LmAnpjlhWTahvRkYR8xJa", "X (with 2 Chainz & Saudi)", "spotify:track:4LmAnpjlhWTahvRkYR8xJa"))

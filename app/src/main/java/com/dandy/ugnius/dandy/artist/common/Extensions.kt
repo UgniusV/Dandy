@@ -15,6 +15,12 @@ import java.util.*
 
 fun <T> List<T?>.secondOrNull(): T? = if (size > 1) get(1) else null
 
+fun <T> List<T>.second(): T = get(1)
+
+fun <T> List<T>.third(): T = get(2)
+
+fun <T> List<T>.fourth(): T = get(3)
+
 fun Bitmap.extractDominantSwatch(): Maybe<Palette.Swatch> {
     return Maybe.create<Palette.Swatch> { emitter ->
         if (isRecycled) {
@@ -72,5 +78,3 @@ fun dpToPx(context: Context, dp: Int): Int {
     val metrics = context.resources.displayMetrics
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), metrics).toInt()
 }
-
-fun ClosedRange<Int>.random() = Random().nextInt((endInclusive + 1) - start) +  start
