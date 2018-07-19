@@ -11,11 +11,13 @@ import io.reactivex.functions.BiFunction
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.toObservable
 import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.collections.ArrayList
 
 class ArtistPresenter(private val APIClient: APIClient, private val artistsView: ArtistView) {
 
     private val compositeDisposable = CompositeDisposable()
+    private val format = SimpleDateFormat("yyyy-mm-dd", Locale.getDefault())
 
     fun query(artistId: String, market: String, groups: String) {
         queryArtist(artistId)
@@ -38,8 +40,8 @@ class ArtistPresenter(private val APIClient: APIClient, private val artistsView:
             .flatMapObservable { it.toObservable() }
             .toSortedList { lhs: Artist, rhs: Artist ->
                 when {
-                    rhs.followers.total > lhs.followers.total -> 1
-                    rhs.followers.total == lhs.followers.total -> 0
+                    rhs.followers > lhs.followers -> 1
+                    rhs.followers == lhs.followers -> 0
                     else -> -1
                 }
             }
@@ -56,21 +58,17 @@ class ArtistPresenter(private val APIClient: APIClient, private val artistsView:
      * Queries artist top tracks and all of his albums and then assigns tracks to albums
      */
 
-    //todo linked hashset
     private fun queryTracksAndAlbums(artistId: String, groups: String, market: String) {
         val disposable = APIClient.getArtistAlbums(artistId, groups)
             .flatMapIterable { it }
             .flatMap(
                 { APIClient.getAlbumsTracks(it.id) },
                 { album, tracks ->
-                    //todo nebenaudoti image kai deseiralizin, viska atlikti su urls
-                    tracks.forEach { it.images = album.images.map { it.url } }
+                    tracks.forEach { it.images = album.images }
                     album.also { it.tracks = tracks }
                 }
             )
-            //todo ar tikrai geras cia sortas
             .toSortedList { lhs, rhs ->
-                val format = SimpleDateFormat("yyyy-mm-dd")
                 format.parse(rhs.releaseDate).compareTo(format.parse(lhs.releaseDate))
             }
             .observeOn(AndroidSchedulers.mainThread())
@@ -78,14 +76,15 @@ class ArtistPresenter(private val APIClient: APIClient, private val artistsView:
                 APIClient.getArtistTopTracks(artistId, market),
                 BiFunction { albums: List<Album>, topTracks: List<Track> ->
                     with(artistsView) {
-                        albums.forEach { println("album ${it.name} release date ${it.releaseDate}") }
-                        val allTracks = LinkedHashSet<Track>(topTracks + albums.flatMap { it.tracks })
+                        val allTracks = LinkedHashSet<Track>(topTracks + albums.flatMap { it.tracks!! })
                         setAllTracks(ArrayList(allTracks))
                         setArtistTracks(ArrayList(topTracks))
                         setArtistsAlbums(albums)
                     }
                 })
-            .subscribeBy  { it.message?.let { artistsView.showError(it) }  }
+            .subscribeBy  { it.message?.let {
+                artistsView.showError(it)
+            }  }
         compositeDisposable.add(disposable)
 
 

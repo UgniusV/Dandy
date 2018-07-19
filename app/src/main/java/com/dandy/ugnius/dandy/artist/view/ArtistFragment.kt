@@ -3,39 +3,25 @@ package com.dandy.ugnius.dandy.artist.view
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color.WHITE
-import android.graphics.LinearGradient
-import android.graphics.Shader
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.PaintDrawable
-import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.shapes.RectShape
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.graphics.ColorUtils
 import android.support.v4.view.PagerAdapter
 import android.support.v7.graphics.Palette
-import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.support.v7.widget.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
-import com.dandy.ugnius.dandy.artist.common.adjustColorLightness
-import com.dandy.ugnius.dandy.artist.common.extractDominantSwatch
-import com.dandy.ugnius.dandy.artist.common.getNumberOfColumns
 import com.dandy.ugnius.dandy.model.entities.Album
 import com.dandy.ugnius.dandy.model.entities.Artist
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.artist.presenter.ArtistPresenter
-import android.support.v7.widget.RecyclerView.VERTICAL
+import android.view.*
 import com.App
-import com.dandy.ugnius.dandy.R
+import com.dandy.ugnius.dandy.*
 import com.dandy.ugnius.dandy.model.clients.APIClient
-import com.dandy.ugnius.dandy.artist.view.decorations.VerticalGridDecorator
 import com.dandy.ugnius.dandy.artist.view.adapters.AlbumsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.SimilarArtistsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.TracksAdapter
@@ -43,7 +29,12 @@ import com.dandy.ugnius.dandy.artist.view.interfaces.ArtistFragmentDelegate
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.view_artist.*
 import com.dandy.ugnius.dandy.main.MainActivity
+import java.text.NumberFormat
+import java.util.*
 import javax.inject.Inject
+import com.dandy.ugnius.dandy.artist.view.decorations.ItemOffsetDecoration
+import android.support.v7.widget.RecyclerView
+
 
 class ArtistFragment : Fragment(), ArtistView {
 
@@ -51,21 +42,45 @@ class ArtistFragment : Fragment(), ArtistView {
         const val ARTIST_PAGER_ENTRIES_COUNT = 3
     }
 
-    @Inject lateinit var apiClient: APIClient
+    @Inject
+    lateinit var apiClient: APIClient
+    private val formatter = NumberFormat.getNumberInstance(Locale.US)
     private val presenter by lazy { ArtistPresenter(apiClient, this) }
     private val tracksAdapter by lazy { TracksAdapter(context!!, { currentTrack -> (this::onArtistTrackClicked)(currentTrack) }) }
-    private val albumsAdapter by lazy { AlbumsAdapter(context!!) }
+    private val albumsAdapter by lazy {
+        AlbumsAdapter(context!!)
+    }
+
+
     private val similarArtistsAdapter by lazy { SimilarArtistsAdapter(context!!) }
     private var delegate: ArtistFragmentDelegate? = null
     private var allTracks: List<Track>? = null
     private var topTracks: List<Track>? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        (activity?.applicationContext as App).mainComponent?.inject(this)
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        (activity as MainActivity).menuInflater.inflate(R.menu.artist_toolbar_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    private fun onFavoriteClicked() {
+
+    }
+
+    private fun onAlbumClicked() {
+
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return if (item?.itemId == R.id.actionFavorite) {
+            println("favorite was clicked")
+            true
+        } else {
+            return super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        (activity?.applicationContext as App).mainComponent?.inject(this)
         return inflater.inflate(R.layout.view_artist, container, false)
     }
 
@@ -74,12 +89,21 @@ class ArtistFragment : Fragment(), ArtistView {
         delegate = context as? MainActivity
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         arguments?.getString("artistId")?.let { presenter.query(it, "ES", "album,single") }
         artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
         artistPager.adapter = ArtistPagerAdapter(context!!)
         artistPagerTabs.setupWithViewPager(artistPager)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        setHasOptionsMenu(true)
+        with(activity as MainActivity) {
+            setSupportActionBar(toolbar)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        }
     }
 
     override fun setAllTracks(allTracks: List<Track>) {
@@ -91,22 +115,24 @@ class ArtistFragment : Fragment(), ArtistView {
     }
 
     override fun setArtistInfo(artist: Artist) {
-        view?.post {
-            val monthlyListeners = String.format(getString(R.string.monthly_listeners, artist.followers?.total
-                ?: 0))
-            listeners.text = monthlyListeners
-            collapsingLayout.title = artist.name
+        val followers = formatter.format(artist.followers)
+        listeners.text = String.format(getString(R.string.followers, followers))
+        collapsingLayout.title = artist.name
+        loadImage(artist.images.first())
+    }
+
+    private fun loadImage(url: String) {
+        background.post {
             Glide.with(context ?: return@post)
                 .asBitmap()
-                .load(artist.images.first().url)
+                .load(url)
                 .into(object : SimpleTarget<Bitmap>(background.width, background.height) {
                     override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                         background.setImageBitmap(resource)
-                        resource.extractDominantSwatch()
-                            .subscribeBy(
-                                onSuccess = { setAccentColor(it) },
-                                onComplete = { artistPager.background = ColorDrawable(WHITE) }
-                            )
+                        resource.extractSwatch().subscribeBy(
+                            onSuccess = { setAccentColor(it) },
+                            onComplete = { artistPager.background = ColorDrawable(WHITE) }
+                        )
                     }
                 })
         }
@@ -137,39 +163,18 @@ class ArtistFragment : Fragment(), ArtistView {
     }
 
     private fun setAccentColor(swatch: Palette.Swatch) {
-        val adjustedColor = adjustColorLightness(color = swatch.rgb, lightness = 0.3F)
+        val adjustedColor = adjustColorLuminance(color = swatch.rgb, luminance = 1F)
         val transparentWhite = ContextCompat.getColor(context!!, R.color.transparentWhite)
-        val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.5F)
-        createShader(artistPager, blendedColor)
-        with(artistPagerTabs) {
-            setSelectedTabIndicatorColor(adjustedColor);
-            setTabTextColors(adjustedColor, adjustedColor)
-        }
-        with(collapsingLayout) {
-            setContentScrimColor(adjustedColor)
-            setStatusBarScrimColor(adjustedColor)
-        }
-    }
+        val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.2F)
+        artistPager.shade(color = blendedColor, ratio = 0.2F)
 
-    //todo padaryti cia normalu viewo importa
-    private fun createShader(view: android.view.View, color: Int) {
-        val shader = object : ShapeDrawable.ShaderFactory() {
-            override fun resize(width: Int, height: Int): Shader {
-                return LinearGradient(
-                    (view.width / 2).toFloat(),
-                    0F,
-                    (width / 2).toFloat(),
-                    (view.height).toFloat(),
-                    intArrayOf(color, WHITE, WHITE),
-                    floatArrayOf(0F, 0.2f, 1f),
-                    Shader.TileMode.CLAMP
-                )
-            }
+        artistPagerTabs?.let {
+            it.setSelectedTabIndicatorColor(adjustedColor);
+            it.setTabTextColors(adjustedColor, adjustedColor)
         }
-        with(PaintDrawable()) {
-            shape = RectShape()
-            shaderFactory = shader
-            view.background = this
+        collapsingLayout?.let {
+            it.setContentScrimColor(swatch.rgb)
+            it.setStatusBarScrimColor(swatch.rgb)
         }
     }
 
@@ -183,21 +188,20 @@ class ArtistFragment : Fragment(), ArtistView {
 
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
             val artistRecycler = inflater.inflate(R.layout.artist_recycler, container, false) as RecyclerView
+            (artistRecycler.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
             when (position) {
                 0 -> {
                     artistRecycler.layoutManager = LinearLayoutManager(context)
                     artistRecycler.adapter = tracksAdapter
                 }
                 1 -> {
-                    val columnCount = getNumberOfColumns(context, columnWidth = 180)
-                    val decoration = VerticalGridDecorator(context, 16, columnCount)
-                    artistRecycler.addItemDecoration(decoration)
-                    artistRecycler.layoutManager = GridLayoutManager(context, columnCount, VERTICAL, false)
+                    artistRecycler.layoutManager = GridLayoutManager(context, 2)
                     artistRecycler.adapter = albumsAdapter
+                    artistRecycler.addItemDecoration(ItemOffsetDecoration(context, 4))
                 }
                 2 -> {
                     artistRecycler.adapter = similarArtistsAdapter
-                    artistRecycler.layoutManager = GridLayoutManager(context, 3, VERTICAL, false)
+                    artistRecycler.layoutManager = LinearLayoutManager(context)
                 }
             }
             container.addView(artistRecycler)

@@ -1,26 +1,40 @@
 package com.dandy.ugnius.dandy.model.deserializers
 
+import com.dandy.ugnius.dandy.model.entities.Artist
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import com.dandy.ugnius.dandy.model.entities.Artist
+import com.google.gson.JsonObject
 import java.lang.reflect.Type
 
-class ArtistDeserializer : JsonDeserializer<List<Artist>> {
+class ArtistDeserializer : JsonDeserializer<Artist> {
 
-    //TODO Refactor this
-    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): List<Artist> {
-        val artists = arrayListOf<Artist>()
-        if (json.isJsonArray) {
-            json.asJsonArray.forEach {
-                artists.add(context.deserialize(it, Artist::class.java))
-            }
-        } else {
-            json.asJsonObject.getAsJsonArray("artists").forEach {
-                artists.add(context.deserialize(it, Artist::class.java))
-            }
-        }
-        return artists
+    override fun deserialize(json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?): Artist {
+      return with(json.asJsonObject) {
+            Artist(
+                get("followers").asJsonObject.get("total").asLong,
+                getGenres(this),
+                get("id").asString,
+                getImages(this),
+                get("name").asString,
+                get("popularity").asInt
+            )
+      }
     }
 
+    private fun getGenres(json: JsonObject): String {
+        val genres = arrayListOf<String>()
+        json.get("genres").asJsonArray.forEach {
+            genres.add(it.asString)
+        }
+        return genres.joinToString(" & ")
+    }
+
+    private fun getImages(json: JsonObject): List<String> {
+        val images = arrayListOf<String>()
+        json.get("images").asJsonArray.forEach {
+            images.add(it.asJsonObject.get("url").asString)
+        }
+        return images
+    }
 }

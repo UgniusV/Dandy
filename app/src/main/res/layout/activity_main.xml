@@ -4,9 +4,8 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <fragment
-        android:name="com.dandy.ugnius.dandy.artist.view.ArtistFragment"
-        android:id="@+id/contentViewFragment"
+    <FrameLayout
+        android:id="@+id/content"
         android:layout_width="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"

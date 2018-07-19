@@ -1,65 +1,83 @@
 package com.dandy.ugnius.dandy.player.presenter
 
 import android.os.Bundle
-import com.dandy.ugnius.dandy.artist.common.random
+import android.os.Handler
+import com.dandy.ugnius.dandy.random
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.player.view.PlayerView
 import com.spotify.sdk.android.player.*
 import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.LinkedHashSet
 
 class PlayerPresenter(private val playerView: PlayerView) {
 
-    //todo test this with shuffle toggling
-
-    //isimti is linked listo
-    //todo refactor this later with DI
     var player: SpotifyPlayer? = null
     private lateinit var tracks: LinkedList<Track>
     private lateinit var currentTrack: Track
     private var queue = LinkedHashSet<Track>()
-    var shuffle: Boolean = false
-
-    /**
-     * Stata geriau saugoti presenteryje nes viewui maziau darbo uzkrausim
-     */
-
-    //pasidaryti random metoda presenteryja
-
-    fun skipToNext() {
-        val nextTrackIndex = if (shuffle) {
-            val hasQueueEnded = !queue.contains(currentTrack) || queue.indexOf(currentTrack) == queue.size - 1
-            if (hasQueueEnded) {
-                (0 until tracks.size - 1).random()
-            } else {
-                val nextQueuedTrackIndex = queue.indexOf(currentTrack) + 1
-                currentTrack = queue.elementAt(nextQueuedTrackIndex)
-                println("flow: queue next index $nextQueuedTrackIndex")
-                playTrack()
+    private var shuffle: Boolean = false
+    private var isPaused = false
+    private lateinit var unmodifiableTracks: LinkedList<Track>
+    private val handler = Handler()
+    private var replay: Boolean = false
+    private val runnable = object : Runnable {
+        override fun run() {
+            if (playerView.hasTrackEnded()) {
+                skipToNext()
                 return
+            } else if (!isPaused) {
+                playerView.updateProgress()
             }
-        } else {
-            tracks.indexOf(currentTrack) + 1
-        }
-        val isValidIndex = nextTrackIndex != tracks.size
-        if (isValidIndex) {
-            println("flow: next index $nextTrackIndex")
-            currentTrack = tracks[nextTrackIndex]
-            playTrack()
+            handler.postDelayed(this, 1000)
         }
     }
 
-    fun skipToPrevious() {
-        if (shuffle) {
-            val lastTrackIndex = queue.indexOf(currentTrack) - 1
-            currentTrack = if (lastTrackIndex == -1) queue.first() else queue.elementAt(lastTrackIndex)
-            println("flow: queue previous index $lastTrackIndex")
+    fun skipToNext(): Track {
+        if (replay && playerView.hasTrackEnded()) {
             playTrack()
         } else {
-            val previousTrackIndex = tracks.indexOf(currentTrack) - 1
-            currentTrack = if (previousTrackIndex == -1) tracks.first() else tracks[previousTrackIndex]
-            println("flow: previous track $previousTrackIndex")
-            playTrack()
+            val nextTrackIndex = if (shuffle) {
+                val hasQueueEnded = !queue.contains(currentTrack) || queue.indexOf(currentTrack) == queue.size - 1
+                if (hasQueueEnded) {
+                    if (tracks.size == 1) 0 else random(0, tracks.size - 1)
+                } else {
+                    val nextQueuedTrackIndex = queue.indexOf(currentTrack) + 1
+                    currentTrack = queue.elementAt(nextQueuedTrackIndex)
+                    playTrack()
+                    return currentTrack
+                }
+            } else {
+                if (tracks.indexOf(currentTrack) == tracks.lastIndex) {
+                    random(0, tracks.size - 1)
+                } else {
+                    tracks.indexOf(currentTrack) + 1
+                }
+            }
+            val isValidIndex = nextTrackIndex != tracks.size
+            if (isValidIndex) {
+                currentTrack = tracks[nextTrackIndex]
+                playTrack()
+            }
         }
+        return currentTrack
+    }
+
+    fun skipToPrevious(): Track {
+        if (playerView.shouldRewind()) {
+            playTrack()
+        } else {
+            if (shuffle) {
+                val lastTrackIndex = queue.indexOf(currentTrack) - 1
+                currentTrack = if (lastTrackIndex == -1) queue.first() else queue.elementAt(lastTrackIndex)
+                playTrack()
+            } else {
+                val previousTrackIndex = tracks.indexOf(currentTrack) - 1
+                currentTrack = if (previousTrackIndex == -1) tracks.first() else tracks[previousTrackIndex]
+                playTrack()
+            }
+        }
+        return currentTrack
     }
 
     /**
@@ -73,48 +91,82 @@ class PlayerPresenter(private val playerView: PlayerView) {
             if (shuffle) {
                 queue.add(it)
                 tracks.remove(it)
-                //todo test this, this line resets the playback
-                if (tracks.isEmpty() || tracks.size == 1) {
-                    tracks.addAll(queue)
+                if (tracks.isEmpty()) {
+                    tracks = LinkedList(unmodifiableTracks)
                     queue.clear()
                 }
             }
-            player?.pause(null)
-            player?.playUri(null, it.uri, 0, 0)
+//            player?.pause(null)
+//            player?.playUri(null, it.uri, 0, 0)
+            handler.removeCallbacks(runnable)
+            handler.postDelayed(runnable, 300)
             playerView.update(currentTrack)
+            isPaused = false
+            playerView.togglePlayButton(isPaused)
         }
     }
 
-    fun pause() {
+    fun seekToPosition(position: Int) {
         player?.pause(null)
+        player?.seekToPosition(null, position * 1000)
+        Handler().postDelayed({
+            player?.resume(null)
+            isPaused = false
+            playerView.togglePlayButton(isPaused)
+        }, 300)
     }
 
-    fun resume() {
-        player?.resume(null)
+    fun togglePlayback() {
+        if (isPaused) {
+            player?.resume(null)
+            isPaused = false
+        } else {
+            player?.pause(null)
+            isPaused = true
+        }
+        playerView.togglePlayButton(isPaused)
     }
 
     fun toggleShuffle() {
-        shuffle = !shuffle
+        if (shuffle) {
+            shuffle = false
+            tracks = LinkedList(unmodifiableTracks)
+            queue.clear()
+        } else {
+            val playedTracks = tracks.slice(0 until tracks.indexOf(currentTrack) + 1)
+            queue.addAll(playedTracks)
+            tracks.removeAll(playedTracks)
+            shuffle = true
+        }
+        playerView.toggleShuffle(shuffle)
     }
 
-    /*
-    Methods used to save presenter state from activity/fragment destruction, these methods take bundle as a parameter
-    but its valid because the presenter itself doesn't depend on bundle and the presenter is still completely testable
-    and even more separated from the UI component
-     */
+    fun toggleReplay() {
+        replay = !replay
+        playerView.toggleReplay(replay)
+    }
 
-    //todo save queu too
-
-    fun setState(bundle: Bundle?) {
-        bundle?.getParcelableArrayList<Track>("tracks")?.let { tracks = LinkedList(it) }
-        bundle?.getParcelable<Track>("currentTrack")?.let { currentTrack = it }
-        bundle?.getBoolean("shuffle", shuffle)
+    fun setState(bundle: Bundle) {
+        with(bundle) {
+            tracks = LinkedList(getParcelableArrayList("tracks"))
+            currentTrack = getParcelable<Track>("currentTrack")
+            shuffle = getBoolean("shuffle")
+            isPaused = getBoolean("isPaused")
+            queue = LinkedHashSet(getParcelableArrayList("queue") ?: emptyList())
+            replay = getBoolean("replay")
+            unmodifiableTracks = LinkedList(tracks)
+        }
     }
 
     fun saveState(bundle: Bundle) {
-        bundle.putParcelableArrayList("tracks", ArrayList(tracks))
-        bundle.putParcelable("currentTrack", currentTrack)
-        bundle.putBoolean("shuffle", shuffle)
+        with(bundle) {
+            putParcelableArrayList("tracks", ArrayList(tracks))
+            putParcelable("currentTrack", currentTrack)
+            putBoolean("shuffle", shuffle)
+            putBoolean("isPaused", isPaused)
+            putParcelableArrayList("queue", ArrayList(queue))
+            putBoolean("replay", replay)   
+        }
     }
 
 }
