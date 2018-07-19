@@ -20,7 +20,7 @@ import com.joanzapata.iconify.fonts.TypiconsModule
 import com.joanzapata.iconify.Iconify
 
 
-
+//TODO Add custom color ripple effect
 class App : Application() {
 
     var mainComponent: MainComponent? = null

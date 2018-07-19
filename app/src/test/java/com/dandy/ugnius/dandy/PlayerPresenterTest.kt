@@ -1,9 +1,6 @@
 package com.dandy.ugnius.dandy
 
 import android.os.Bundle
-import com.dandy.ugnius.dandy.artist.common.fourth
-import com.dandy.ugnius.dandy.artist.common.second
-import com.dandy.ugnius.dandy.artist.common.third
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.player.presenter.PlayerPresenter
 import com.dandy.ugnius.dandy.player.view.PlayerView
@@ -91,7 +88,7 @@ class PlayerPresenterTest {
             verify(this, atLeast(2)).update(secondShuffleTrack!!)
             verify(this, atLeast(2)).update(thirdShuffleTrack!!)
             if (tracks.indexOf(thirdShuffleTrack!!) !in 1..18) {
-                exceptions.expect(ArrayIndexOutOfBoundsException::class.java)
+                exceptions.expect(IndexOutOfBoundsException::class.java)
             }
             verify(this, atLeast(1)).update(tracks[tracks.indexOf(thirdShuffleTrack!!) - 1])
             verify(this, atLeast(1)).update(tracks[tracks.indexOf(thirdShuffleTrack!!) + 1])

@@ -44,10 +44,11 @@ class NetworkModule {
         val builder = GsonBuilder().apply {
             setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             registerTypeAdapter(Track::class.java, TrackDeserializer())
+            registerTypeAdapter(Artist::class.java, ArtistDeserializer())
             registerTypeAdapter(PlaybackInfo::class.java, PlaybackInfoDeserializer())
             registerTypeAdapter(trackListType, TracksDeserializer())
             registerTypeAdapter(albumsListType, AlbumsDeserializer())
-            registerTypeAdapter(artistsListType, ArtistDeserializer())
+            registerTypeAdapter(artistsListType, ArtistsDeserializer())
         }
         return GsonConverterFactory.create(builder.create())
     }

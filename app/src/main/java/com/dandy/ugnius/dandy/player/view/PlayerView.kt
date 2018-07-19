@@ -8,6 +8,6 @@ interface PlayerView {
     fun hasTrackEnded() : Boolean
     fun shouldRewind(): Boolean
     fun togglePlayButton(isPaused: Boolean)
-    fun toggleShuffle(shuffle: Boolean)
-    fun toggleReplay(replay: Boolean)
+    fun toggleShuffle(isShuffle: Boolean)
+    fun toggleReplay(isReplay: Boolean)
 }

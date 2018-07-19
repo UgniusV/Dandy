@@ -35,7 +35,7 @@
             android:textSize="23sp" />
 
         <TextView
-            android:id="@+id/artistTitle"
+            android:id="@+id/trackArtist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"

@@ -16,6 +16,7 @@ import android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
 import android.view.WindowManager
 import com.dandy.ugnius.dandy.artist.view.ArtistFragment
+import com.dandy.ugnius.dandy.test.TestFragment
 
 class MainActivity : AppCompatActivity(), ArtistFragmentDelegate {
 

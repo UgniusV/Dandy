@@ -1,54 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="66dp"
-    android:layout_marginBottom="8dp"
-    android:orientation="horizontal">
+    android:background="?android:attr/selectableItemBackground"
+    android:layout_height="66dp">
 
     <TextView
         android:id="@+id/trackIndex"
-        android:layout_width="16dp"
+        android:layout_width="20dp"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-        android:layout_marginEnd="4dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:textAlignment="center"
-        android:textColor="@android:color/black" />
+        android:textColor="@android:color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/trackImage"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_centerVertical="true"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:layout_toEndOf="@id/trackIndex"
         android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/trackIndex"
+        app:layout_constraintTop_toTopOf="parent"
         app:riv_corner_radius="3dp" />
 
     <TextView
         android:id="@+id/trackTitle"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="7dp"
-        android:layout_marginEnd="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="16dp"
         android:layout_toEndOf="@id/trackImage"
         android:ellipsize="end"
         android:fontFamily="sans-serif-medium"
         android:maxLines="1"
-        android:textColor="@android:color/black" />
+        android:textColor="@android:color/black"
+        app:layout_constraintEnd_toStartOf="@+id/trackDuration"
+        app:layout_constraintStart_toEndOf="@+id/trackImage"
+        app:layout_constraintTop_toTopOf="@+id/trackImage" />
 
     <TextView
         android:id="@+id/trackArtist"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="48dp"
-        android:layout_marginBottom="7dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="4dp"
         android:layout_toEndOf="@id/trackImage"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="@color/darkGrey" />
+        android:textColor="@color/darkGrey"
+        app:layout_constraintBottom_toBottomOf="@+id/trackImage"
+        app:layout_constraintEnd_toStartOf="@+id/trackDuration"
+        app:layout_constraintStart_toEndOf="@+id/trackImage" />
 
     <TextView
         android:id="@+id/trackDuration"
@@ -56,6 +74,12 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:textColor="@android:color/black" />
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="8dp"
+        android:textColor="@android:color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-</RelativeLayout>
+</android.support.constraint.ConstraintLayout>

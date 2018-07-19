@@ -2,6 +2,7 @@ package com.dandy.ugnius.dandy.player.presenter
 
 import android.os.Bundle
 import android.os.Handler
+import com.dandy.ugnius.dandy.random
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.player.view.PlayerView
 import com.spotify.sdk.android.player.*
@@ -95,8 +96,8 @@ class PlayerPresenter(private val playerView: PlayerView) {
                     queue.clear()
                 }
             }
-            player?.pause(null)
-            player?.playUri(null, it.uri, 0, 0)
+//            player?.pause(null)
+//            player?.playUri(null, it.uri, 0, 0)
             handler.removeCallbacks(runnable)
             handler.postDelayed(runnable, 300)
             playerView.update(currentTrack)
@@ -145,29 +146,27 @@ class PlayerPresenter(private val playerView: PlayerView) {
         playerView.toggleReplay(replay)
     }
 
-    fun setState(bundle: Bundle?) {
-        bundle?.getParcelableArrayList<Track>("tracks")?.let {
-            tracks = LinkedList(it)
-            unmodifiableTracks = LinkedList(it)
+    fun setState(bundle: Bundle) {
+        with(bundle) {
+            tracks = LinkedList(getParcelableArrayList("tracks"))
+            currentTrack = getParcelable<Track>("currentTrack")
+            shuffle = getBoolean("shuffle")
+            isPaused = getBoolean("isPaused")
+            queue = LinkedHashSet(getParcelableArrayList("queue") ?: emptyList())
+            replay = getBoolean("replay")
+            unmodifiableTracks = LinkedList(tracks)
         }
-        bundle?.getParcelable<Track>("currentTrack")?.let { currentTrack = it }
-        bundle?.getBoolean("shuffle", false)?.let {
-            shuffle = it
-        }
-        bundle?.getBoolean("isPaused", false)?.let { isPaused = it }
-        bundle?.getParcelableArrayList<Track>("queue")?.let { queue = LinkedHashSet(it) }
-        bundle?.getBoolean("replay")?.let { replay = it }
     }
 
     fun saveState(bundle: Bundle) {
-        bundle.putParcelableArrayList("tracks", ArrayList(tracks))
-        bundle.putParcelable("currentTrack", currentTrack)
-        bundle.putBoolean("shuffle", shuffle)
-        bundle.putBoolean("isPaused", isPaused)
-        bundle.putParcelableArrayList("queue", ArrayList(queue))
-        bundle.putBoolean("replay", replay)
+        with(bundle) {
+            putParcelableArrayList("tracks", ArrayList(tracks))
+            putParcelable("currentTrack", currentTrack)
+            putBoolean("shuffle", shuffle)
+            putBoolean("isPaused", isPaused)
+            putParcelableArrayList("queue", ArrayList(queue))
+            putBoolean("replay", replay)   
+        }
     }
-
-    private fun random(start: Int, end: Int) = Random().nextInt((end + 1) - start) +  start
 
 }

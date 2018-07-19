@@ -2,14 +2,12 @@ package com.dandy.ugnius.dandy.artist.view.adapters
 
 import android.content.Context
 import android.support.v7.widget.RecyclerView
-import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.model.entities.Track
-import com.dandy.ugnius.dandy.artist.common.secondOrNull
 import kotlinx.android.synthetic.main.track_cell_entry.view.*
 
 class TracksAdapter(
