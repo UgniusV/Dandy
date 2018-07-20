@@ -11,6 +11,7 @@ import android.graphics.Shader.TileMode.CLAMP
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.shapes.RectShape
 import android.graphics.PorterDuff.Mode.MULTIPLY
+import android.graphics.drawable.ColorDrawable
 import android.support.v7.graphics.Palette
 import io.reactivex.Maybe
 import android.support.v4.graphics.ColorUtils
@@ -18,9 +19,15 @@ import android.support.v4.graphics.drawable.DrawableCompat
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.Transition
+import com.dandy.ugnius.dandy.model.entities.Track
 import com.github.florent37.viewanimator.ViewAnimator
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import io.reactivex.rxkotlin.subscribeBy
+import kotlinx.android.synthetic.main.view_artist.*
 import java.util.*
 
 
@@ -47,6 +54,20 @@ fun Bitmap.extractSwatch(): Maybe<Palette.Swatch> {
                 }
             }
         }
+    }
+}
+
+fun ImageView.loadBitmap(url: String, context: Context, onBitmapLoaded: (Bitmap) -> Unit) {
+    post {
+        Glide.with(context)
+            .asBitmap()
+            .load(url)
+            .into(object : SimpleTarget<Bitmap>(width, height) {
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    setImageBitmap(resource)
+                    onBitmapLoaded(resource)
+                }
+            })
     }
 }
 

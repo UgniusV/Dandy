@@ -13,7 +13,10 @@ import com.dandy.ugnius.dandy.second
 import com.makeramen.roundedimageview.RoundedImageView
 import kotlinx.android.synthetic.main.album_cell_entry.view.*
 
-class AlbumsAdapter(context: Context) : RecyclerView.Adapter<AlbumsAdapter.ViewHolder>() {
+class AlbumsAdapter(
+    context: Context,
+    private val onAlbumClicked: (Album) -> Unit
+) : RecyclerView.Adapter<AlbumsAdapter.ViewHolder>() {
 
     private val dimension = getGridItemDimensions(context)
     private val inflater = LayoutInflater.from(context)
@@ -21,7 +24,7 @@ class AlbumsAdapter(context: Context) : RecyclerView.Adapter<AlbumsAdapter.ViewH
     var entries = listOf<Album>()
         set(value) {
             field = value
-            notifyDataSetChanged()
+            notifyItemRangeInserted(0, entries.size)
         }
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
@@ -43,7 +46,7 @@ class AlbumsAdapter(context: Context) : RecyclerView.Adapter<AlbumsAdapter.ViewH
             glide.load(entry.images.second()).into(artwork)
             title.text = entry.name
             releaseDate.text = entry.releaseDate
-
+            setOnClickListener { onAlbumClicked(entry) }
         }
     }
 }

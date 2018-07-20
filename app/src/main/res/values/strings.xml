@@ -5,6 +5,7 @@
     <string name="favorite">Favorite</string>
     <string name="various_genres">Various Genres</string>
     <string name="albums">Albums</string>
+    <string name="search">Search</string>
     <string name="genres">Genres: %1$s</string>
     <string name="singles">Singles</string>
     <string name="options">Options</string>

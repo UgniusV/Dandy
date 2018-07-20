@@ -48,7 +48,6 @@ class Track(
         }
     }
 
-
     override fun equals(other: Any?): Boolean {
        return if (other is Track) {
             other.id == this.id && other.duration == this.duration

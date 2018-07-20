@@ -8,11 +8,13 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.model.entities.Track
-import kotlinx.android.synthetic.main.track_cell_entry.view.*
+import com.dandy.ugnius.dandy.second
+import com.dandy.ugnius.dandy.third
+import kotlinx.android.synthetic.main.track_entry.view.*
 
 class TracksAdapter(
     context: Context,
-    private val onTrackClicked: (Track) -> Unit
+    private val onTrackClicked: (Track, List<Track>) -> Unit
 ) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
 
     var entries = listOf<Track>()
@@ -20,13 +22,14 @@ class TracksAdapter(
         field = value
         notifyDataSetChanged()
     }
+
     private val inflater = LayoutInflater.from(context)
     private val requestManager = Glide.with(context)
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(inflater.inflate(R.layout.track_cell_entry, parent, false))
+        return ViewHolder(inflater.inflate(R.layout.track_entry, parent, false))
     }
 
     override fun getItemCount() = entries.size
@@ -35,11 +38,11 @@ class TracksAdapter(
         with(holder.itemView) {
             val entry = entries[position]
             trackIndex.text = (position + 1).toString()
-            requestManager.load(entry.images[1]).into(trackImage)
+            requestManager.load(entry.images.second()).into(trackImage)
             trackTitle.text = entry.name
             trackArtist.text = entry.artists
             trackDuration.text = entry.duration
-            setOnClickListener { onTrackClicked(entry) }
+            setOnClickListener { onTrackClicked(entry, entries) }
         }
     }
 

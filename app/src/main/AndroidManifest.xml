@@ -17,6 +17,7 @@
         <activity
             android:name=".main.MainActivity"
             android:label=""
+            android:windowSoftInputMode="stateAlwaysHidden"
             android:hardwareAccelerated="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -175,11 +175,11 @@ class PlayerFragment : Fragment(), PlayerView {
     private fun setAccentColor(swatch: Palette.Swatch) {
         accentColor = swatch.rgb
         val transparentWhite = ContextCompat.getColor(context!!, R.color.opaqueWhite)
-        val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.1F)
-
-        seekbar.progressTintList = ColorStateList.valueOf(swatch.rgb)
+        val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.3F)
+        val adjustedColor = Drawables.lightenOrDarken(swatch.rgb, 0.3)
+        seekbar.progressTintList = ColorStateList.valueOf(adjustedColor)
         seekbar.progressBackgroundTintList = ColorStateList.valueOf(blendedColor)
-        seekbar.thumbTintList = ColorStateList.valueOf(swatch.rgb)
+        seekbar.thumbTintList = ColorStateList.valueOf(adjustedColor)
         playbackControls.shade(color = blendedColor, ratio = 0.5F)
     }
 

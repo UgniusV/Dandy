@@ -17,7 +17,8 @@ class ArtistDeserializer : JsonDeserializer<Artist> {
                 get("id").asString,
                 getImages(this),
                 get("name").asString,
-                get("popularity").asInt
+                get("popularity").asInt,
+                null
             )
       }
     }

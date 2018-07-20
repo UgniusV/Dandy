@@ -1,19 +1,15 @@
 package com.dandy.ugnius.dandy.artist.view
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Color.WHITE
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.view.View.VISIBLE
+import android.view.View.GONE
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
-import android.support.v4.graphics.ColorUtils
 import android.support.v4.view.PagerAdapter
 import android.support.v7.graphics.Palette
 import android.support.v7.widget.*
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.SimpleTarget
-import com.bumptech.glide.request.transition.Transition
 import com.dandy.ugnius.dandy.model.entities.Album
 import com.dandy.ugnius.dandy.model.entities.Artist
 import com.dandy.ugnius.dandy.model.entities.Track
@@ -25,58 +21,44 @@ import com.dandy.ugnius.dandy.model.clients.APIClient
 import com.dandy.ugnius.dandy.artist.view.adapters.AlbumsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.SimilarArtistsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.TracksAdapter
-import com.dandy.ugnius.dandy.artist.view.interfaces.ArtistFragmentDelegate
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.view_artist.*
 import com.dandy.ugnius.dandy.main.MainActivity
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale.US
 import javax.inject.Inject
 import com.dandy.ugnius.dandy.artist.view.decorations.ItemOffsetDecoration
 import android.support.v7.widget.RecyclerView
+import android.widget.ImageView
+
 
 
 class ArtistFragment : Fragment(), ArtistView {
 
-    private companion object {
-        const val ARTIST_PAGER_ENTRIES_COUNT = 3
-    }
-
-    @Inject
-    lateinit var apiClient: APIClient
-    private val formatter = NumberFormat.getNumberInstance(Locale.US)
+    @Inject lateinit var apiClient: APIClient
+    private val formatter = NumberFormat.getNumberInstance(US)
     private val presenter by lazy { ArtistPresenter(apiClient, this) }
-    private val tracksAdapter by lazy { TracksAdapter(context!!, { currentTrack -> (this::onArtistTrackClicked)(currentTrack) }) }
+    private var searchItem: MenuItem? = null
+    private var searchView: SearchView? = null
+
+    private val tracksAdapter by lazy {
+        TracksAdapter(
+            context = context!!,
+            onTrackClicked = { currentTrack, tracks -> (this::onArtistTrackClicked)(currentTrack, tracks) }
+        )
+    }
     private val albumsAdapter by lazy {
-        AlbumsAdapter(context!!)
+        AlbumsAdapter(
+            context = context!!,
+            onAlbumClicked = { album -> (this::onAlbumClicked)(album) }
+        )
     }
-
-
-    private val similarArtistsAdapter by lazy { SimilarArtistsAdapter(context!!) }
-    private var delegate: ArtistFragmentDelegate? = null
-    private var allTracks: List<Track>? = null
-    private var topTracks: List<Track>? = null
-
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        (activity as MainActivity).menuInflater.inflate(R.menu.artist_toolbar_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    private fun onFavoriteClicked() {
-
-    }
-
-    private fun onAlbumClicked() {
-
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return if (item?.itemId == R.id.actionFavorite) {
-            println("favorite was clicked")
-            true
-        } else {
-            return super.onOptionsItemSelected(item)
-        }
+    private val similarArtistsAdapter by lazy {
+        SimilarArtistsAdapter(
+            context = context!!,
+            onTrackClicked = { currentTrack, tracks -> (this::onArtistTrackClicked)(currentTrack, tracks) },
+            onArtistClicked = { artist -> (context as MainActivity).onArtistClicked(artist.id) }
+        )
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -84,92 +66,75 @@ class ArtistFragment : Fragment(), ArtistView {
         return inflater.inflate(R.layout.view_artist, container, false)
     }
 
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-        delegate = context as? MainActivity
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        arguments?.getString("artistId")?.let { presenter.query(it, "ES", "album,single") }
-        artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
-        artistPager.adapter = ArtistPagerAdapter(context!!)
-        artistPagerTabs.setupWithViewPager(artistPager)
-    }
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        arguments?.getString("artistId")?.let { presenter.query(it, "ES", "album,single") }
         setHasOptionsMenu(true)
-        with(activity as MainActivity) {
-            setSupportActionBar(toolbar)
-            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        (activity as MainActivity).setSupportActionBar(toolbar)
+        collapsingAppBar.addOnOffsetChangedListener { appBarLayout, offset ->
+            if (offset == -appBarLayout.totalScrollRange) {
+                searchItem?.isVisible = true
+                searchView?.visibility = VISIBLE
+                (activity as MainActivity).supportActionBar?.setDisplayHomeAsUpEnabled(false)
+            } else if (offset == 0) {
+                searchItem?.isVisible = false
+                searchView?.visibility = GONE
+                toolbar.collapseActionView()
+                (activity as? MainActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            }
         }
-    }
-
-    override fun setAllTracks(allTracks: List<Track>) {
-        this.allTracks = allTracks
-    }
-
-    private fun onArtistTrackClicked(currentTrack: Track) {
-        allTracks?.let { delegate?.onArtistTrackClicked(currentTrack, it) }
     }
 
     override fun setArtistInfo(artist: Artist) {
-        val followers = formatter.format(artist.followers)
-        listeners.text = String.format(getString(R.string.followers, followers))
-        collapsingLayout.title = artist.name
-        loadImage(artist.images.first())
-    }
-
-    private fun loadImage(url: String) {
-        background.post {
-            Glide.with(context ?: return@post)
-                .asBitmap()
-                .load(url)
-                .into(object : SimpleTarget<Bitmap>(background.width, background.height) {
-                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                        background.setImageBitmap(resource)
-                        resource.extractSwatch().subscribeBy(
-                            onSuccess = { setAccentColor(it) },
-                            onComplete = { artistPager.background = ColorDrawable(WHITE) }
-                        )
-                    }
-                })
+        followers?.text = String.format(getString(R.string.followers, formatter.format(artist.followers)))
+        collapsingLayout?.title = artist.name
+        background?.loadBitmap(artist.images.first(), context!!) {
+            it.extractSwatch().subscribeBy(
+                onSuccess = { setAccentColor(it) },
+                onComplete = { artistPager.background = ColorDrawable(WHITE) }
+            )
         }
     }
 
-    override fun setArtistTracks(tracks: List<Track>) {
-        tracksAdapter.entries = tracks
-    }
-
-    override fun setArtistsAlbums(albums: List<Album>) {
+    override fun setTracksAndAlbums(tracks: List<Track>, albums: List<Album>) {
         albumsAdapter.entries = albums
+        tracksAdapter.entries = tracks
+        artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
+        artistPager.adapter = ArtistPagerAdapter(context!!)
+        artistPagerTabs.setupWithViewPager(artistPager)
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                //todo pasearchint like a soccer mom gausiu 2 resultatus
+                tracksAdapter.entries = tracks.filter { it.name.contains(newText, true) }
+                return false
+            }
+        })
     }
 
     override fun setSimilarArtists(artists: List<Artist>) {
         similarArtistsAdapter.entries = artists
     }
 
+    private fun onArtistTrackClicked(currentTrack: Track, tracks: List<Track>) {
+        (context as? MainActivity)?.onArtistTrackClicked(currentTrack, tracks)
+    }
+
+    private fun onAlbumClicked(album: Album) = (context as? MainActivity)?.onAlbumClicked(album)
+
     override fun showError(message: String) {
-        //todo show lottie error
-    }
-
-    override fun showLoader() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun hideLoader() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        //show error
     }
 
     private fun setAccentColor(swatch: Palette.Swatch) {
-        val adjustedColor = adjustColorLuminance(color = swatch.rgb, luminance = 1F)
-        val transparentWhite = ContextCompat.getColor(context!!, R.color.transparentWhite)
-        val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.2F)
-        artistPager.shade(color = blendedColor, ratio = 0.2F)
-
+        artistPager.shade(color = Utilities.whiteBlend(context!!, swatch.rgb, 0.3F), ratio = 0.2F)
+        val adjustedColor = Drawables.lightenOrDarken(swatch.rgb, 0.4)
         artistPagerTabs?.let {
-            it.setSelectedTabIndicatorColor(adjustedColor);
+            it.setSelectedTabIndicatorColor(adjustedColor)
             it.setTabTextColors(adjustedColor, adjustedColor)
         }
         collapsingLayout?.let {
@@ -178,7 +143,27 @@ class ArtistFragment : Fragment(), ArtistView {
         }
     }
 
-    private inner class ArtistPagerAdapter(private val context: Context) : PagerAdapter() {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater?) {
+        (activity as MainActivity).menuInflater.inflate(R.menu.artist_toolbar_menu, menu)
+        searchItem = menu.findItem(R.id.action_search)
+        searchView = searchItem?.actionView as SearchView
+        searchView?.setIconifiedByDefault(false)
+        val searchIcon = searchView?.findViewById(android.support.v7.appcompat.R.id.search_mag_icon) as ImageView
+        searchIcon.setImageDrawable(null)
+        searchView?.queryHint = context?.getString(R.string.search)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return if (item?.itemId == R.id.actionFavorite) {
+            //add artist to favorites
+            true
+        } else {
+            return super.onOptionsItemSelected(item)
+        }
+    }
+
+    private inner class ArtistPagerAdapter(context: Context) : PagerAdapter() {
 
         private val inflater = LayoutInflater.from(context)
 
@@ -188,24 +173,25 @@ class ArtistFragment : Fragment(), ArtistView {
 
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
             val artistRecycler = inflater.inflate(R.layout.artist_recycler, container, false) as RecyclerView
-            (artistRecycler.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
-            when (position) {
-                0 -> {
-                    artistRecycler.layoutManager = LinearLayoutManager(context)
-                    artistRecycler.adapter = tracksAdapter
+            with(artistRecycler) {
+                when (position) {
+                    0 -> {
+                        adapter = tracksAdapter
+                        layoutManager = LinearLayoutManager(context)
+                    }
+                    1 -> {
+                        adapter = albumsAdapter
+                        layoutManager = GridLayoutManager(context, 2)
+                        addItemDecoration(ItemOffsetDecoration(context, 4))
+                    }
+                    2 -> {
+                        adapter = similarArtistsAdapter
+                        layoutManager = LinearLayoutManager(context)
+                    }
                 }
-                1 -> {
-                    artistRecycler.layoutManager = GridLayoutManager(context, 2)
-                    artistRecycler.adapter = albumsAdapter
-                    artistRecycler.addItemDecoration(ItemOffsetDecoration(context, 4))
-                }
-                2 -> {
-                    artistRecycler.adapter = similarArtistsAdapter
-                    artistRecycler.layoutManager = LinearLayoutManager(context)
-                }
+                container.addView(this)
+                return artistRecycler
             }
-            container.addView(artistRecycler)
-            return artistRecycler
         }
 
         override fun destroyItem(container: ViewGroup, position: Int, view: Any) {

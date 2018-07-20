@@ -2,15 +2,11 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorControlActivated">@android:color/white</item>
+        <item name="android:textCursorDrawable">@drawable/cursor</item>
         <!--<item name="android:statusBarColor">@android:color/transparent</item>-->
         <!--<item name="android:windowTranslucentStatus">true</item>-->
     </style>
 
-    <style name="CustomSeekbar" parent="Widget.AppCompat.SeekBar">
-        <item name="colorAccent">#1D5368</item>
-        <item name="android:width">30dp</item>
-        <item name="android:height">30dp</item>
-        <item name="android:progressBackgroundTint">#bababa</item>
-    </style>
 
 </resources>

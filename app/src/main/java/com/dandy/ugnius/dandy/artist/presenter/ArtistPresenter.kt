@@ -5,28 +5,28 @@ import com.dandy.ugnius.dandy.model.clients.APIClient
 import com.dandy.ugnius.dandy.model.entities.Album
 import com.dandy.ugnius.dandy.model.entities.Artist
 import com.dandy.ugnius.dandy.model.entities.Track
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.rxkotlin.toObservable
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
+import kotlin.collections.LinkedHashSet
 
-class ArtistPresenter(private val APIClient: APIClient, private val artistsView: ArtistView) {
+class ArtistPresenter(private val apiClient: APIClient, private val artistsView: ArtistView) {
 
     private val compositeDisposable = CompositeDisposable()
-    private val format = SimpleDateFormat("yyyy-mm-dd", Locale.getDefault())
+    private val formatter = SimpleDateFormat("yyyy-mm-dd", Locale.getDefault())
 
     fun query(artistId: String, market: String, groups: String) {
         queryArtist(artistId)
-        queryRelatedArtist(artistId)
+        querySimilarArtists(artistId, market)
         queryTracksAndAlbums(artistId, groups, market)
     }
 
     private fun queryArtist(artistId: String) {
-        val disposable = APIClient.getArtist(artistId)
+        val disposable = apiClient.getArtist(artistId)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onSuccess = { artistsView.setArtistInfo(it) },
@@ -35,9 +35,22 @@ class ArtistPresenter(private val APIClient: APIClient, private val artistsView:
         compositeDisposable.add(disposable)
     }
 
-    private fun queryRelatedArtist(artistId: String) {
-        val disposable = APIClient.getArtistRelatedArtists(artistId)
-            .flatMapObservable { it.toObservable() }
+    private fun querySimilarArtists(artistId: String, market: String) {
+
+        fun queryArtistTopThreeTracks(artistId: String, market: String): Observable<List<Track>> {
+            return apiClient.getArtistTopTracks(artistId, market)
+                .flatMapIterable { it }
+                .take(3)
+                .toList()
+                .toObservable()
+        }
+
+        val disposable = apiClient.getSimilarArtists(artistId)
+            .flatMapIterable { it }
+            .flatMap(
+                { queryArtistTopThreeTracks(it.id, market)},
+                { artist, tracks -> artist.also { it.tracks = tracks } }
+            )
             .toSortedList { lhs: Artist, rhs: Artist ->
                 when {
                     rhs.followers > lhs.followers -> 1
@@ -53,38 +66,35 @@ class ArtistPresenter(private val APIClient: APIClient, private val artistsView:
         compositeDisposable.add(disposable)
     }
 
-
-    /**
-     * Queries artist top tracks and all of his albums and then assigns tracks to albums
-     */
-
     private fun queryTracksAndAlbums(artistId: String, groups: String, market: String) {
-        val disposable = APIClient.getArtistAlbums(artistId, groups)
+        val disposable = apiClient.getArtistAlbums(artistId, groups)
             .flatMapIterable { it }
             .flatMap(
-                { APIClient.getAlbumsTracks(it.id) },
+                { apiClient.getAlbumsTracks(it.id) },
                 { album, tracks ->
                     tracks.forEach { it.images = album.images }
                     album.also { it.tracks = tracks }
                 }
             )
-            .toSortedList { lhs, rhs ->
-                format.parse(rhs.releaseDate).compareTo(format.parse(lhs.releaseDate))
+            .toSortedList {
+                lhs, rhs ->
+                val firstDate = formatter.format(formatter.parse(rhs.releaseDate))
+                val secondDate = formatter.format(formatter.parse(lhs.releaseDate))
+                firstDate.compareTo(secondDate)
             }
+            .toObservable()
             .observeOn(AndroidSchedulers.mainThread())
             .zipWith(
-                APIClient.getArtistTopTracks(artistId, market),
+                apiClient.getArtistTopTracks(artistId, market),
                 BiFunction { albums: List<Album>, topTracks: List<Track> ->
                     with(artistsView) {
-                        val allTracks = LinkedHashSet<Track>(topTracks + albums.flatMap { it.tracks!! })
-                        setAllTracks(ArrayList(allTracks))
-                        setArtistTracks(ArrayList(topTracks))
-                        setArtistsAlbums(albums)
+                        val tracks = LinkedHashSet<Track>(topTracks + albums.flatMap { it.tracks!! }).toList()
+                        setTracksAndAlbums(tracks, LinkedHashSet<Album>(albums).toList())
                     }
                 })
-            .subscribeBy  { it.message?.let {
-                artistsView.showError(it)
-            }  }
+            .subscribeBy(onError = {
+                it.message?.let { artistsView.showError(it) } }
+            )
         compositeDisposable.add(disposable)
 
 

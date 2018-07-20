@@ -119,6 +119,14 @@ class PlayerPresenterTest {
         verify(view).toggleReplay(true)
     }
 
+    @Test
+    fun testPlaybackQueueCompletion() {
+        for (i in 0 until 21) {
+            presenter.skipToNext()
+        }
+        verify(view, times(2)).update(tracks.first())
+    }
+
     private fun getTracks(): ArrayList<Track> {
         val images = emptyList<String>()
         with(arrayListOf<Track>()) {

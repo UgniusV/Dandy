@@ -48,8 +48,14 @@ class PlayerPresenter(private val playerView: PlayerView) {
                     return currentTrack
                 }
             } else {
-                if (tracks.indexOf(currentTrack) == tracks.lastIndex) {
-                    random(0, tracks.size - 1)
+                val allTracksHaveBeenPlayed = tracks.indexOf(currentTrack) == tracks.lastIndex
+                if (allTracksHaveBeenPlayed) {
+                    if (shuffle) {
+                        random(0, tracks.size - 1)
+                    } else {
+                        resetPlaybackQueue()
+                        0
+                    }
                 } else {
                     tracks.indexOf(currentTrack) + 1
                 }
@@ -92,12 +98,11 @@ class PlayerPresenter(private val playerView: PlayerView) {
                 queue.add(it)
                 tracks.remove(it)
                 if (tracks.isEmpty()) {
-                    tracks = LinkedList(unmodifiableTracks)
-                    queue.clear()
+                    resetPlaybackQueue()
                 }
             }
-//            player?.pause(null)
-//            player?.playUri(null, it.uri, 0, 0)
+            player?.pause(null)
+            player?.playUri(null, it.uri, 0, 0)
             handler.removeCallbacks(runnable)
             handler.postDelayed(runnable, 300)
             playerView.update(currentTrack)
@@ -130,8 +135,7 @@ class PlayerPresenter(private val playerView: PlayerView) {
     fun toggleShuffle() {
         if (shuffle) {
             shuffle = false
-            tracks = LinkedList(unmodifiableTracks)
-            queue.clear()
+            resetPlaybackQueue()
         } else {
             val playedTracks = tracks.slice(0 until tracks.indexOf(currentTrack) + 1)
             queue.addAll(playedTracks)
@@ -144,6 +148,11 @@ class PlayerPresenter(private val playerView: PlayerView) {
     fun toggleReplay() {
         replay = !replay
         playerView.toggleReplay(replay)
+    }
+
+    private fun resetPlaybackQueue() {
+        tracks = LinkedList(unmodifiableTracks)
+        queue.clear()
     }
 
     fun setState(bundle: Bundle) {

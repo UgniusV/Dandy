@@ -5,6 +5,8 @@ import android.media.session.MediaSession
 import android.support.v4.app.NotificationCompat
 import com.App.Companion.CHANNEL_ID
 import android.support.v4.app.NotificationCompat.PRIORITY_LOW
+import android.support.v4.content.ContextCompat
+import android.support.v4.graphics.ColorUtils
 
 object Utilities {
 
@@ -33,5 +35,10 @@ object Utilities {
         val minutes = Integer.parseInt(units[0])
         val seconds = Integer.parseInt(units[1])
         return 60 * minutes + seconds;
+    }
+
+    fun whiteBlend(context: Context, color: Int, ratio: Float): Int {
+        val transparentWhite = ContextCompat.getColor(context, R.color.transparentWhite)
+        return ColorUtils.blendARGB(transparentWhite, color, ratio)
     }
 }

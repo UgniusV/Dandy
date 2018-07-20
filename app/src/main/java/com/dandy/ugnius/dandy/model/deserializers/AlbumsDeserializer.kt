@@ -26,9 +26,18 @@ class AlbumsDeserializer : JsonDeserializer<List<Album>> {
                 get("id").asString,
                 getImages(this),
                 get("name").asString,
-                get("release_date").asString,
+                deserializeDate(this),
                 null
             )
+        }
+    }
+
+    private fun deserializeDate(json: JsonObject): String {
+        val date = json.get("release_date").asString
+        return if (!date.contains("-")) {
+            "$date-01-01"
+        } else {
+            date
         }
     }
 
