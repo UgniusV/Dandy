@@ -9,6 +9,8 @@
     <string name="genres">Genres: %1$s</string>
     <string name="singles">Singles</string>
     <string name="options">Options</string>
+    <string name="songs">Songs</string>
+    <string name="similar">Similar</string>
     <string name="log_in">Log in</string>
     <string name="app_description">Dandy is a non comercial Spotify client with some performance and user interface adjustments. In order to use it you must have a premium Spotify account</string>
 

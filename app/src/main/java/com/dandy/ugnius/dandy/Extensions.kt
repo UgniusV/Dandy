@@ -122,19 +122,17 @@ fun dpToPx(context: Context, dp: Int): Int {
 
 fun random(start: Int, end: Int) = Random().nextInt((end + 1) - start) + start
 
-fun ImageView.activate(duration: Long = 250, color: Int? = GREEN) {
+fun ImageView.upscale(duration: Long = 250) {
     ViewAnimator.animate(this)
         .duration(duration)
         .scale(1F, 1.2F)
-        .onStart { color?.let { DrawableCompat.setTint(drawable, it) } }
         .start()
 }
 
-fun ImageView.deactivate(duration: Long = 250, color: Int? = BLACK) {
+fun ImageView.downscale(duration: Long = 250) {
     ViewAnimator.animate(this)
         .duration(duration)
         .scale(1.2F, 1F)
-        .onStart { color?.let { DrawableCompat.setTint(drawable, it) } }
         .start()
 }
 

@@ -3,7 +3,6 @@ package com.dandy.ugnius.dandy.model.clients
 import com.dandy.ugnius.dandy.model.entities.*
 import io.reactivex.Observable
 import io.reactivex.Single
-import retrofit2.Call
 import retrofit2.http.*
 
 interface APIClient {
@@ -26,7 +25,5 @@ interface APIClient {
     @GET("v1/artists/{artistId}/related-artists")
     fun getSimilarArtists(@Path("artistId") artistId: String): Observable<List<Artist>>
 
-    @GET("v1/tracks/{trackId}")
-    fun getFullTrack(@Path("trackId") trackId: String): Single<Track>
 
 }

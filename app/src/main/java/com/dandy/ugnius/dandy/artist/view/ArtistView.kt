@@ -5,8 +5,9 @@ import com.dandy.ugnius.dandy.model.entities.Artist
 import com.dandy.ugnius.dandy.model.entities.Track
 
 interface ArtistView {
-        fun setArtistInfo(artist: Artist)
-        fun setSimilarArtists(artists: List<Artist>)
-        fun setTracksAndAlbums(tracks: List<Track>, albums: List<Album>)
-        fun showError(message: String)
+    fun setArtistInfo(artist: Artist)
+    fun setSimilarArtists(similarArtists: List<Artist>)
+    fun setAllTracksAndAlbums(tracks: List<Track>, albums: List<Album>)
+    fun setArtistTopTracks(tracks: List<Track>)
+    fun showError(message: String)
 }

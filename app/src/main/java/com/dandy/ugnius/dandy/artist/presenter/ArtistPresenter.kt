@@ -18,11 +18,20 @@ class ArtistPresenter(private val apiClient: APIClient, private val artistsView:
 
     private val compositeDisposable = CompositeDisposable()
     private val formatter = SimpleDateFormat("yyyy-mm-dd", Locale.getDefault())
+    private var topTracksObservable: Observable<List<Track>>? = null
 
     fun query(artistId: String, market: String, groups: String) {
         queryArtist(artistId)
+        queryTopTracks(artistId, market)
         querySimilarArtists(artistId, market)
-        queryTracksAndAlbums(artistId, groups, market)
+        queryAllTracksAndAlbums(artistId, groups, market)
+    }
+
+    private fun getTopTracksObservable(artistId: String, market: String): Observable<List<Track>> {
+        if (topTracksObservable == null) {
+            topTracksObservable = apiClient.getArtistTopTracks(artistId, market).cache()
+        }
+        return topTracksObservable!!
     }
 
     private fun queryArtist(artistId: String) {
@@ -30,6 +39,18 @@ class ArtistPresenter(private val apiClient: APIClient, private val artistsView:
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onSuccess = { artistsView.setArtistInfo(it) },
+                onError = {
+                    it.message?.let { artistsView.showError(it) }
+                }
+            )
+        compositeDisposable.add(disposable)
+    }
+
+    private fun queryTopTracks(artistId: String, market: String) {
+        val disposable = getTopTracksObservable(artistId, market)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onNext = { artistsView.setArtistTopTracks(it) },
                 onError = { it.message?.let { artistsView.showError(it) } }
             )
         compositeDisposable.add(disposable)
@@ -48,7 +69,7 @@ class ArtistPresenter(private val apiClient: APIClient, private val artistsView:
         val disposable = apiClient.getSimilarArtists(artistId)
             .flatMapIterable { it }
             .flatMap(
-                { queryArtistTopThreeTracks(it.id, market)},
+                { queryArtistTopThreeTracks(it.id, market) },
                 { artist, tracks -> artist.also { it.tracks = tracks } }
             )
             .toSortedList { lhs: Artist, rhs: Artist ->
@@ -66,7 +87,7 @@ class ArtistPresenter(private val apiClient: APIClient, private val artistsView:
         compositeDisposable.add(disposable)
     }
 
-    private fun queryTracksAndAlbums(artistId: String, groups: String, market: String) {
+    private fun queryAllTracksAndAlbums(artistId: String, groups: String, market: String) {
         val disposable = apiClient.getArtistAlbums(artistId, groups)
             .flatMapIterable { it }
             .flatMap(
@@ -76,8 +97,7 @@ class ArtistPresenter(private val apiClient: APIClient, private val artistsView:
                     album.also { it.tracks = tracks }
                 }
             )
-            .toSortedList {
-                lhs, rhs ->
+            .toSortedList { lhs, rhs ->
                 val firstDate = formatter.format(formatter.parse(rhs.releaseDate))
                 val secondDate = formatter.format(formatter.parse(lhs.releaseDate))
                 firstDate.compareTo(secondDate)
@@ -85,25 +105,20 @@ class ArtistPresenter(private val apiClient: APIClient, private val artistsView:
             .toObservable()
             .observeOn(AndroidSchedulers.mainThread())
             .zipWith(
-                apiClient.getArtistTopTracks(artistId, market),
+                getTopTracksObservable(artistId, market),
                 BiFunction { albums: List<Album>, topTracks: List<Track> ->
                     with(artistsView) {
                         val tracks = LinkedHashSet<Track>(topTracks + albums.flatMap { it.tracks!! }).toList()
-                        setTracksAndAlbums(tracks, LinkedHashSet<Album>(albums).toList())
+                        setAllTracksAndAlbums(tracks, LinkedHashSet<Album>(albums).toList())
                     }
                 })
-            .subscribeBy(onError = {
-                it.message?.let { artistsView.showError(it) } }
+            .subscribeBy(onError = { it.message?.let { artistsView.showError(it) } }
             )
         compositeDisposable.add(disposable)
-
-
     }
 
-    fun dispose() {
-        if (!compositeDisposable.isDisposed) {
-            compositeDisposable.dispose()
-        }
+    fun clear() {
+        compositeDisposable.clear()
     }
 
 }

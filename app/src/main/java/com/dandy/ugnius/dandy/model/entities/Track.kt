@@ -50,7 +50,7 @@ class Track(
 
     override fun equals(other: Any?): Boolean {
        return if (other is Track) {
-            other.id == this.id && other.duration == this.duration
+           other.duration == duration && other.name == name && other.artists == artists
         } else {
             false
         }
@@ -58,8 +58,9 @@ class Track(
 
     override fun hashCode(): Int {
         var result = 17
-        result = 31 * result + id.hashCode()
         result = 31 * result + duration.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + artists.hashCode()
         return result
     }
 }

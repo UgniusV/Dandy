@@ -1,21 +1,17 @@
 package com.dandy.ugnius.dandy.player.view
 
 import android.content.res.ColorStateList
-import android.graphics.*
+import android.graphics.Color.WHITE
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.NotificationCompat
+import android.support.v4.graphics.drawable.DrawableCompat
 import com.App
-import android.support.v4.content.ContextCompat
-import android.support.v4.graphics.ColorUtils
 import android.support.v4.view.ViewCompat
 import android.support.v7.graphics.Palette
 import android.view.*
 import android.widget.SeekBar
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.SimpleTarget
-import com.bumptech.glide.request.transition.Transition
 import com.dandy.ugnius.dandy.*
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.model.entities.Track
@@ -37,7 +33,6 @@ class PlayerFragment : Fragment(), PlayerView {
     private val playerPresenter by lazy { PlayerPresenter(this).also { it.player = player } }
     private val formatter = SimpleDateFormat("mm:ss", Locale.getDefault())
     private var isTracking = false
-    private var accentColor: Int? = null
 
     override fun updateProgress() {
         if (!isTracking) {
@@ -48,17 +43,17 @@ class PlayerFragment : Fragment(), PlayerView {
 
     override fun toggleShuffle(isShuffle: Boolean) {
         if (isShuffle) {
-            shuffle.activate(color = accentColor)
+            shuffle.upscale()
         } else {
-            shuffle.deactivate()
+            shuffle.downscale()
         }
     }
 
     override fun toggleReplay(isReplay: Boolean) {
         if (isReplay) {
-            replay.activate(color = accentColor)
+            replay.upscale()
         } else {
-            replay.deactivate()
+            replay.downscale()
         }
     }
 
@@ -72,16 +67,12 @@ class PlayerFragment : Fragment(), PlayerView {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (activity?.applicationContext as App).mainComponent?.inject(this)
-        savedInstanceState?.let {
-            playerPresenter.setState(it)
-            accentColor = it.getInt("colorAccent")
-        }
         ViewCompat.requestApplyInsets(root)
+        (activity?.applicationContext as App).mainComponent?.inject(this)
+        savedInstanceState?.let { playerPresenter.setState(it) }
         initializeViews()
         arguments?.let { playerPresenter.setState(it) }
         playerPresenter.playTrack()
-
 
     }
 
@@ -145,48 +136,32 @@ class PlayerFragment : Fragment(), PlayerView {
         with(track) {
             trackTitle?.text = name
             trackArtist?.text = artists
-            updateArtwork(this)
+            artwork?.loadBitmap(images.first(), context!!) {
+                it.extractSwatch().subscribeBy(
+                        onSuccess = { setAccentColor(it) },
+                        onComplete = { playbackControls?.background = ColorDrawable(WHITE) }
+                    )
+            }
         }
         seekbar.progress = 0
-        duration?.text = track.duration
+        duration.text = track.duration
         seekbar.max = Utilities.durationToSeconds(track.duration)
-
-    }
-
-    private fun updateArtwork(track: Track) {
-        artwork?.post {
-            Glide.with(context ?: return@post)
-                .asBitmap()
-                .load(track.images.first())
-                .into(object : SimpleTarget<Bitmap>(artwork!!.width, artwork!!.height) {
-                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                        artwork?.setImageBitmap(resource)
-                        resource.extractSwatch()
-                            .subscribeBy(
-                                onSuccess = { setAccentColor(it) },
-                                onComplete = { playbackControls?.background = ColorDrawable(Color.WHITE) }
-                            )
-//                    track.let { showNotification(resource, it) }
-                    }
-                })
-        }
     }
 
     private fun setAccentColor(swatch: Palette.Swatch) {
-        accentColor = swatch.rgb
-        val transparentWhite = ContextCompat.getColor(context!!, R.color.opaqueWhite)
-        val blendedColor = ColorUtils.blendARGB(transparentWhite, swatch.rgb, 0.3F)
+        val blendedColor = Utilities.whiteBlend(context!!, swatch.rgb, 0.3F)
         val adjustedColor = Drawables.lightenOrDarken(swatch.rgb, 0.3)
+        DrawableCompat.setTint(replay.drawable, adjustedColor)
+        DrawableCompat.setTint(shuffle.drawable, adjustedColor)
         seekbar.progressTintList = ColorStateList.valueOf(adjustedColor)
         seekbar.progressBackgroundTintList = ColorStateList.valueOf(blendedColor)
         seekbar.thumbTintList = ColorStateList.valueOf(adjustedColor)
         playbackControls.shade(color = blendedColor, ratio = 0.5F)
-    }
 
+    }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        accentColor?.let { outState.putInt("accentColor", it) }
         playerPresenter.saveState(outState)
     }
 

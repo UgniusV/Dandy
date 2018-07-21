@@ -21,11 +21,21 @@ class AlbumsAdapter(
     private val dimension = getGridItemDimensions(context)
     private val inflater = LayoutInflater.from(context)
     private val glide = Glide.with(context)
-    var entries = listOf<Album>()
-        set(value) {
-            field = value
-            notifyItemRangeInserted(0, entries.size)
+    var unmodifiableEntries: List<Album>? = null
+    private var entries = listOf<Album>()
+
+    fun setAlbums(entries: List<Album>) {
+        this.entries = entries
+        if (unmodifiableEntries == null) {
+            unmodifiableEntries = entries
         }
+        notifyDataSetChanged()
+    }
+
+    fun reset() {
+        entries = unmodifiableEntries ?: emptyList()
+        notifyDataSetChanged()
+    }
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
         init {

@@ -68,6 +68,6 @@ class NetworkModule {
 
     @Singleton
     @Provides
-    fun provideArtistClient(retrofit: Retrofit) = retrofit.create(APIClient::class.java)
+    fun provideClient(retrofit: Retrofit) = retrofit.create(APIClient::class.java)
 
 }

@@ -9,7 +9,6 @@ import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.model.entities.Track
 import com.dandy.ugnius.dandy.second
-import com.dandy.ugnius.dandy.third
 import kotlinx.android.synthetic.main.track_entry.view.*
 
 class TracksAdapter(
@@ -17,14 +16,28 @@ class TracksAdapter(
     private val onTrackClicked: (Track, List<Track>) -> Unit
 ) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
 
-    var entries = listOf<Track>()
-    set(value) {
-        field = value
+    private val inflater = LayoutInflater.from(context)
+    private val requestManager = Glide.with(context)
+    var unmodifiableEntries: List<Track>? = null
+    private var entries = listOf<Track>()
+
+    fun setTopTracks(entries: List<Track>) {
+        this.entries = entries
+        notifyItemRangeInserted(0, entries.size)
+    }
+
+    fun setAllTracks(entries: List<Track>) {
+        this.entries = entries
+        if (unmodifiableEntries == null) {
+            unmodifiableEntries = entries
+        }
         notifyDataSetChanged()
     }
 
-    private val inflater = LayoutInflater.from(context)
-    private val requestManager = Glide.with(context)
+    fun reset() {
+        entries = unmodifiableEntries ?: emptyList()
+        notifyDataSetChanged()
+    }
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
 

@@ -80,4 +80,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!--<com.airbnb.lottie.LottieAnimationView-->
+        <!--android:id="@+id/favorite"-->
+        <!--android:layout_width="37dp"-->
+        <!--android:layout_height="37dp"-->
+        <!--app:lottie_rawRes="@raw/loader"-->
+        <!--app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--app:layout_constraintEnd_toEndOf="parent"-->
+        <!--app:layout_constraintStart_toStartOf="parent"-->
+        <!--app:layout_constraintTop_toTopOf="parent" />-->
+
 </android.support.constraint.ConstraintLayout>

@@ -15,7 +15,7 @@ import kotlinx.android.synthetic.main.similar_artist_cell_entry.view.*
 import java.text.NumberFormat
 
 class SimilarArtistsAdapter(
-    private val context: Context,
+    context: Context,
     private val onTrackClicked: (Track, List<Track>) -> Unit,
     private val onArtistClicked: (Artist) -> Unit
 ) : RecyclerView.Adapter<SimilarArtistsAdapter.ViewHolder>() {
@@ -23,11 +23,21 @@ class SimilarArtistsAdapter(
     private val inflater = LayoutInflater.from(context)
     private val requestManager = Glide.with(context)
     private val formatter = NumberFormat.getNumberInstance(US)
-    var entries = listOf<Artist>()
-        set(value) {
-            field = value
-            notifyItemRangeInserted(0, entries.size)
+    var unmodifiableEntries: List<Artist>? = null
+    private var entries = listOf<Artist>()
+
+    fun setSimilarArtists(entries: List<Artist>) {
+        this.entries = entries
+        if (unmodifiableEntries == null) {
+            unmodifiableEntries = entries
         }
+        notifyDataSetChanged()
+    }
+
+    fun reset() {
+        entries = unmodifiableEntries ?: emptyList()
+        notifyDataSetChanged()
+    }
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
 
@@ -49,7 +59,7 @@ class SimilarArtistsAdapter(
                 String.format(context.getString(R.string.genres, entry.genres))
             }
             topThreeSongsRecycler.layoutManager = LinearLayoutManager(context)
-            topThreeSongsRecycler.adapter = TracksAdapter(context, onTrackClicked).apply { entries = entry.tracks!! }
+            topThreeSongsRecycler.adapter = TracksAdapter(context, onTrackClicked).apply { setAllTracks(entry.tracks!!) }
             artistInfo.setOnClickListener { onArtistClicked(entry) }
             favorite.setOnClickListener { favorite.playAnimation() }
         }
