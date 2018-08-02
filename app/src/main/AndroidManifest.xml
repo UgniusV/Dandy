@@ -19,10 +19,6 @@
             android:label=""
             android:windowSoftInputMode="adjustNothing"
             android:hardwareAccelerated="true">
-        </activity>
-        <activity
-            android:name=".login.view.LoginActivity"
-            android:hardwareAccelerated="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

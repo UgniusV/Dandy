@@ -11,7 +11,6 @@ import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.model.entities.Album
 import com.dandy.ugnius.dandy.second
-import com.dandy.ugnius.dandy.secondOrNull
 
 class HorizontalAlbumsAdapter(context: Context, private val entries: List<Album>) : RecyclerView.Adapter<HorizontalAlbumsAdapter.ViewHolder>() {
 
@@ -21,7 +20,7 @@ class HorizontalAlbumsAdapter(context: Context, private val entries: List<Album>
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(inflater.inflate(R.layout.album_cell_entry, parent, false))
+        return ViewHolder(inflater.inflate(R.layout.album_entry, parent, false))
     }
 
     override fun getItemCount() = entries.size

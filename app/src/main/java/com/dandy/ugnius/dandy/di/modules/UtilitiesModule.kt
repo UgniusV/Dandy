@@ -18,21 +18,17 @@ import javax.inject.Singleton
 @Module
 class UtilitiesModule(private val context: Context) {
 
-    //todo cia reikia pasidaryti custom scopa
-    @Singleton
     @Provides
     fun provideContext(): Context = context
 
-    @Singleton
     @Provides
     fun provideAuthenticationPreferences(context: Context): SharedPreferences {
         return context.getSharedPreferences("preferences", MODE_PRIVATE)
     }
 
-    @Singleton
     @Provides
     fun provideSpotifyPlayer(context: Context?, authenticationPreferences: SharedPreferences?): SpotifyPlayer {
-        val accessToken = authenticationPreferences?.getString("access_token", "") ?: ""
+        val accessToken = authenticationPreferences?.getString("accessToken", "") ?: ""
         val playerConfig = Config(context, accessToken, CLIENT_ID)
         return Spotify.getPlayer(playerConfig, context, null)
 

@@ -1,6 +1,7 @@
 package com.dandy.ugnius.dandy.artist.view
 
 import android.content.Context
+import android.databinding.DataBindingUtil
 import android.graphics.Color.WHITE
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -13,7 +14,7 @@ import android.support.v7.widget.*
 import com.dandy.ugnius.dandy.model.entities.Album
 import com.dandy.ugnius.dandy.model.entities.Artist
 import com.dandy.ugnius.dandy.model.entities.Track
-import com.dandy.ugnius.dandy.artist.presenter.ArtistPresenter
+import com.dandy.ugnius.dandy.artist.presenter.ArtistViewModel
 import android.view.*
 import com.App
 import com.dandy.ugnius.dandy.*
@@ -24,31 +25,31 @@ import com.dandy.ugnius.dandy.artist.view.adapters.TracksAdapter
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.view_artist.*
 import com.dandy.ugnius.dandy.main.MainActivity
-import java.text.NumberFormat
-import java.util.Locale.US
 import javax.inject.Inject
 import com.dandy.ugnius.dandy.artist.view.decorations.ItemOffsetDecoration
 import android.support.v7.widget.RecyclerView
 import android.widget.ImageView
+import com.dandy.ugnius.dandy.artist.view.adapters.TracksAdapterDelegate
+import com.dandy.ugnius.dandy.artist.view.interfaces.ArtistView
+import com.dandy.ugnius.dandy.databinding.ViewArtistBinding
+import com.dandy.ugnius.dandy.login.viewmodel.ViewModelFactory
 import com.jakewharton.rxbinding2.support.v4.view.RxViewPager
 import com.jakewharton.rxbinding2.support.v7.widget.RxSearchView
 import io.reactivex.disposables.CompositeDisposable
 
-class ArtistFragment : Fragment(), ArtistView {
+class ArtistFragment : Fragment(), TracksAdapterDelegate {
 
-    @Inject lateinit var apiClient: APIClient
-    private val formatter = NumberFormat.getNumberInstance(US)
-    private val presenter by lazy { ArtistPresenter(apiClient, this) }
+    //todo live data su search queriu
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private var viewModel: ArtistViewModel? = null
     private var searchItem: MenuItem? = null
     private var searchView: SearchView? = null
     private var compositeDisposable = CompositeDisposable()
+    private var binding: ViewArtistBinding? = null
 
-    private val tracksAdapter by lazy {
-        TracksAdapter(
-            context = context!!,
-            onTrackClicked = { currentTrack, tracks -> (this::onArtistTrackClicked)(currentTrack, tracks) }
-        )
-    }
+    private val tracksAdapter by lazy { TracksAdapter(context!!, this) }
     private val albumsAdapter by lazy {
         AlbumsAdapter(
             context = context!!,
@@ -65,14 +66,32 @@ class ArtistFragment : Fragment(), ArtistView {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         (activity?.applicationContext as App).mainComponent?.inject(this)
-        return inflater.inflate(R.layout.view_artist, container, false)
+        viewModel = withViewModel(viewModelFactory) {
+            observe(artist) { setArtistInfo(it!!) }
+            observe(topTracks) { tracksAdapter.setTracks(it!!) }
+            observe(tracks) { tracksAdapter.setAllTracks(it!!) }
+            observe(albums) { albumsAdapter.setAlbums(it!!) }
+            observe(similarArtists) { similarArtistsAdapter.setSimilarArtists(it!!) }
+        }
+//        viewModel.artist.po
+        binding = DataBindingUtil.inflate(inflater, R.layout.view_artist, container, false)
+        return binding?.root
+    }
+
+
+    private fun setArtistInfo(artist: Artist) {
+        binding?.artist = artist
+        background?.loadBitmap(artist.images.first(), context!!) {
+            it.extractSwatch().subscribeBy(
+                onSuccess = { setAccentColor(it) },
+                onComplete = { artistPager.background = ColorDrawable(WHITE) }
+            )
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        arguments?.getString("artistId")?.let {
-            presenter.query(it, "ES", "album,single")
-        }
+        arguments?.getString("artistId")?.let { viewModel?.query(it, "ES", "album,single") }
         setHasOptionsMenu(true)
         (activity as MainActivity).setSupportActionBar(toolbar)
         artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
@@ -122,40 +141,11 @@ class ArtistFragment : Fragment(), ArtistView {
 
     }
 
-    override fun setArtistInfo(artist: Artist) {
-        followers?.text = String.format(getString(R.string.followers, formatter.format(artist.followers)))
-        collapsingLayout?.title = artist.name
-        background?.loadBitmap(artist.images.first(), context!!) {
-            it.extractSwatch().subscribeBy(
-                onSuccess = { setAccentColor(it) },
-                onComplete = { artistPager.background = ColorDrawable(WHITE) }
-            )
-        }
-    }
-
-    override fun setArtistTopTracks(tracks: List<Track>) {
-        loader.visibility = GONE
-        tracksAdapter.setTopTracks(tracks)
-    }
-
-    override fun setAllTracksAndAlbums(tracks: List<Track>, albums: List<Album>) {
-        tracksAdapter.setAllTracks(tracks)
-        albumsAdapter.setAlbums(albums)
-    }
-
-    override fun setSimilarArtists(similarArtists: List<Artist>) {
-        similarArtistsAdapter.setSimilarArtists(similarArtists)
-    }
-
-    private fun onArtistTrackClicked(currentTrack: Track, tracks: List<Track>) {
+    override fun onArtistTrackClicked(currentTrack: Track, tracks: List<Track>) {
         (context as? MainActivity)?.onArtistTrackClicked(currentTrack, tracks)
     }
 
     private fun onAlbumClicked(album: Album) = (context as? MainActivity)?.onAlbumClicked(album)
-
-    override fun showError(message: String) {
-        //show error
-    }
 
     private fun setAccentColor(swatch: Palette.Swatch) {
         artistPager.shade(color = Utilities.whiteBlend(context!!, swatch.rgb, 0.3F), ratio = 0.2F)
@@ -193,7 +183,6 @@ class ArtistFragment : Fragment(), ArtistView {
     override fun onDestroy() {
         super.onDestroy()
         compositeDisposable.clear()
-        presenter.clear()
     }
 
     private inner class ArtistPagerAdapter(context: Context) : PagerAdapter() {
@@ -205,7 +194,7 @@ class ArtistFragment : Fragment(), ArtistView {
         override fun isViewFromObject(view: android.view.View, `object`: Any) = view == `object`
 
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
-            val artistRecycler = inflater.inflate(R.layout.artist_recycler, container, false) as RecyclerView
+            val artistRecycler = inflater.inflate(R.layout.pager_recycler, container, false) as RecyclerView
             with(artistRecycler) {
                 when (position) {
                     0 -> {

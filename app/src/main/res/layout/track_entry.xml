@@ -1,93 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="66dp">
+<layout>
+    <data>
+        <import type="com.dandy.ugnius.dandy.model.entities.Track"/>
+        <variable name="track" type="Track"/>
+        <variable name="index" type="Integer"/>
+        <variable name="entries" type="java.util.List&lt;Track&gt;"/>
+        <variable name="delegate" type="com.dandy.ugnius.dandy.artist.view.adapters.TracksAdapterDelegate"/>
+    </data>
 
-    <TextView
-        android:id="@+id/trackIndex"
-        android:layout_width="20dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:onClick="@{() -> delegate.onArtistTrackClicked(track, entries)}"
+        android:layout_height="66dp">
 
-    <com.makeramen.roundedimageview.RoundedImageView
-        android:id="@+id/trackImage"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:layout_toEndOf="@id/trackIndex"
-        android:scaleType="fitXY"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/trackIndex"
-        app:layout_constraintTop_toTopOf="parent"
-        app:riv_corner_radius="3dp" />
+        <TextView
+            android:id="@+id/trackIndex"
+            android:layout_width="20dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="4dp"
+            android:text="@{String.valueOf(index + 1)}"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/trackTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="16dp"
-        android:layout_toEndOf="@id/trackImage"
-        android:ellipsize="end"
-        android:fontFamily="sans-serif-medium"
-        android:maxLines="1"
-        android:textColor="@android:color/black"
-        app:layout_constraintEnd_toStartOf="@+id/trackDuration"
-        app:layout_constraintStart_toEndOf="@+id/trackImage"
-        app:layout_constraintTop_toTopOf="@+id/trackImage" />
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/trackImage"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_toEndOf="@id/trackIndex"
+            android:scaleType="fitXY"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/trackIndex"
+            app:layout_constraintTop_toTopOf="parent"
+            app:riv_corner_radius="3dp"
+            app:imageUrl="@{track.images.get(2)}"/>
 
-    <TextView
-        android:id="@+id/trackArtist"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="4dp"
-        android:layout_toEndOf="@id/trackImage"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="@color/darkGrey"
-        app:layout_constraintBottom_toBottomOf="@+id/trackImage"
-        app:layout_constraintEnd_toStartOf="@+id/trackDuration"
-        app:layout_constraintStart_toEndOf="@+id/trackImage" />
+        <TextView
+            android:id="@+id/trackTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:text="@{track.name}"
+            android:layout_marginEnd="16dp"
+            android:layout_toEndOf="@id/trackImage"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:textColor="@android:color/black"
+            app:layout_constraintEnd_toStartOf="@+id/trackDuration"
+            app:layout_constraintStart_toEndOf="@+id/trackImage"
+            app:layout_constraintTop_toTopOf="@+id/trackImage" />
 
-    <TextView
-        android:id="@+id/trackDuration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="8dp"
-        android:textColor="@android:color/black"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/trackArtist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="8dp"
+            android:text="@{track.artists}"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="4dp"
+            android:layout_toEndOf="@id/trackImage"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/darkGrey"
+            app:layout_constraintBottom_toBottomOf="@+id/trackImage"
+            app:layout_constraintEnd_toStartOf="@+id/trackDuration"
+            app:layout_constraintStart_toEndOf="@+id/trackImage" />
 
-    <!--<com.airbnb.lottie.LottieAnimationView-->
-        <!--android:id="@+id/favorite"-->
-        <!--android:layout_width="37dp"-->
-        <!--android:layout_height="37dp"-->
-        <!--app:lottie_rawRes="@raw/loader"-->
-        <!--app:layout_constraintBottom_toBottomOf="parent"-->
-        <!--app:layout_constraintEnd_toEndOf="parent"-->
-        <!--app:layout_constraintStart_toStartOf="parent"-->
-        <!--app:layout_constraintTop_toTopOf="parent" />-->
+        <TextView
+            android:id="@+id/trackDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="8dp"
+            android:text="@{track.duration}"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="@android:color/black"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-</android.support.constraint.ConstraintLayout>
+    </android.support.constraint.ConstraintLayout>
+</layout>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="artist"
+            type="com.dandy.ugnius.dandy.model.entities.Artist"/>
+    </data>
+
+    <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        card_view:cardCornerRadius="4dp"
+        card_view:cardElevation="4dp">
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white">
+
+            <android.support.constraint.ConstraintLayout
+                android:layout_width="0dp"
+                app:layout_constraintBottom_toTopOf="@+id/guideline2"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:id="@+id/artistInfo"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_height="wrap_content">
+
+                <com.makeramen.roundedimageview.RoundedImageView
+                    android:id="@+id/artwork"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_margin="16dp"
+                    android:scaleType="fitXY"
+                    app:imageUrl="@{artist.images.get(1)}"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:riv_corner_radius="40dp" />
+
+                <TextView
+                    android:id="@+id/artistName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="@{artist.name}"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/textPrimary"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toStartOf="@+id/favorite"
+                    app:layout_constraintStart_toEndOf="@+id/artwork"
+                    app:layout_constraintTop_toTopOf="@+id/artwork" />
+
+                <TextView
+                    android:id="@+id/followers"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:maxLines="1"
+                    android:text="@{@string/followers(artist.followers)}"
+                    android:textColor="@color/textSecondary"
+                    app:layout_constraintBottom_toTopOf="@+id/genres"
+                    app:layout_constraintEnd_toStartOf="@+id/favorite"
+                    app:layout_constraintStart_toEndOf="@+id/artwork"
+                    app:layout_constraintTop_toBottomOf="@+id/artistName" />
+
+                <TextView
+                    android:id="@+id/genres"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@{artist.genres.isEmpty() ? @string/various_genres : artist.genres}"
+                    android:textColor="@color/textSecondary"
+                    app:layout_constraintBottom_toBottomOf="@+id/artwork"
+                    app:layout_constraintEnd_toStartOf="@+id/favorite"
+                    app:layout_constraintStart_toEndOf="@+id/artwork" />
+
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/favorite"
+                    android:layout_width="37dp"
+                    android:layout_height="37dp"
+                    android:layout_marginEnd="16dp"
+                    app:lottie_rawRes="@raw/ic_fav"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </android.support.constraint.ConstraintLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/topThreeSongsRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/guideline2" />
+
+            <android.support.constraint.Guideline
+                android:id="@+id/guideline2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_begin="117dp" />
+
+        </android.support.constraint.ConstraintLayout>
+
+    </android.support.v7.widget.CardView>
+</layout>

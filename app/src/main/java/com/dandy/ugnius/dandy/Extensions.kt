@@ -1,5 +1,7 @@
 package com.dandy.ugnius.dandy
 
+import android.arch.lifecycle.*
+import android.arch.lifecycle.Observer
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.PaintDrawable
@@ -12,6 +14,8 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.shapes.RectShape
 import android.graphics.PorterDuff.Mode.MULTIPLY
 import android.graphics.drawable.ColorDrawable
+import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentActivity
 import android.support.v7.graphics.Palette
 import io.reactivex.Maybe
 import android.support.v4.graphics.ColorUtils
@@ -158,4 +162,16 @@ fun View.shade(color: Int, ratio: Float) {
         shaderFactory = shader
         background = this
     }
+}
+
+inline fun <reified T : ViewModel> Fragment.getViewModel(viewModelFactory: ViewModelProvider.Factory): T {
+    return ViewModelProviders.of(this, viewModelFactory)[T::class.java]
+}
+
+inline fun <reified T : ViewModel> Fragment.withViewModel(viewModelFactory: ViewModelProvider.Factory, body: T.() -> Unit): T {
+    return getViewModel<T>(viewModelFactory).apply { body() }
+}
+
+fun <T : Any, L : LiveData<T>> LifecycleOwner.observe(liveData: L, body: (T?) -> Unit) {
+    liveData.observe(this, Observer(body))
 }

@@ -1,18 +1,21 @@
 package com.dandy.ugnius.dandy.model.entities
 
+import android.arch.persistence.room.*
 import android.os.Parcel
 import android.os.Parcelable
+import com.dandy.ugnius.dandy.model.converters.Converters
+import com.google.gson.annotations.Expose
 
+@Entity
 class Track(
     var images: List<String>,
-    val artists: String,
-    val duration: String,
-    val explicit: Boolean,
-    val id: String,
-    val name: String,
-    val uri: String
+    var artists: String,
+    var duration: String,
+    var explicit: Boolean,
+    @PrimaryKey var id: String,
+    var name: String,
+    var uri: String
 ) : Parcelable {
-
 
     constructor(parcel: Parcel) : this(
         parcel.createStringArrayList(),
@@ -21,8 +24,7 @@ class Track(
         parcel.readInt() == 1,
         parcel.readString(),
         parcel.readString(),
-        parcel.readString()) {
-    }
+        parcel.readString())
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeStringList(images)
@@ -49,8 +51,8 @@ class Track(
     }
 
     override fun equals(other: Any?): Boolean {
-       return if (other is Track) {
-           other.duration == duration && other.name == name && other.artists == artists
+        return if (other is Track) {
+            other.duration == duration && other.name == name && other.artists == artists
         } else {
             false
         }

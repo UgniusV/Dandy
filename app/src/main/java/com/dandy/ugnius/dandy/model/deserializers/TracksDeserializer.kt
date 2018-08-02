@@ -13,7 +13,11 @@ class TracksDeserializer : JsonDeserializer<List<Track>> {
         val jsonObject = json.asJsonObject
         val entries = jsonObject.getAsJsonArray("tracks") ?: jsonObject.getAsJsonArray("items")
         entries.forEach {
-            tracks.add(context.deserialize(it, Track::class.java))
+            if (it.asJsonObject.get("added_at") == null) {
+                tracks.add(context.deserialize(it, Track::class.java))
+            } else {
+                tracks.add(context.deserialize(it.asJsonObject.get("track"), Track::class.java))
+            }
         }
         return tracks
     }

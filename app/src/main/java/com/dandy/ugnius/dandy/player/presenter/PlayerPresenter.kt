@@ -33,6 +33,8 @@ class PlayerPresenter(private val playerView: PlayerView) {
         }
     }
 
+
+
     fun skipToNext(): Track {
         if (replay && playerView.hasTrackEnded()) {
             playTrack()

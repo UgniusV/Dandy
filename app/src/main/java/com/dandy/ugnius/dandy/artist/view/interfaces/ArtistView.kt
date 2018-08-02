@@ -1,4 +1,4 @@
-package com.dandy.ugnius.dandy.artist.view
+package com.dandy.ugnius.dandy.artist.view.interfaces
 
 import com.dandy.ugnius.dandy.model.entities.Album
 import com.dandy.ugnius.dandy.model.entities.Artist

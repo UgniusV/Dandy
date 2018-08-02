@@ -14,6 +14,7 @@ import com.dandy.ugnius.dandy.di.components.MainComponent
 import com.dandy.ugnius.dandy.di.modules.UtilitiesModule
 import com.dandy.ugnius.dandy.player.receiver.StreamingNotificationReceiver
 import android.net.ConnectivityManager.CONNECTIVITY_ACTION
+import com.dandy.ugnius.dandy.di.modules.PersistanceModule
 import com.dandy.ugnius.dandy.player.receivers.ConnectionStateReceiver
 import com.joanzapata.iconify.fonts.TypiconsModule
 import com.joanzapata.iconify.Iconify
@@ -50,7 +51,8 @@ class App : Application() {
 
     private fun createDependencyGraph() {
         mainComponent = DaggerMainComponent.builder()
-            .utilitiesModule(UtilitiesModule(this))
+            .utilitiesModule(UtilitiesModule(applicationContext))
+            .persistanceModule(PersistanceModule(applicationContext))
             .build()
     }
 

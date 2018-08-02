@@ -9,14 +9,17 @@ import android.view.ViewGroup
 import com.App
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.model.clients.APIClient
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.fragment_test.*
 import javax.inject.Inject
 
 
 class TestFragment : Fragment() {
 
-    @Inject lateinit var apiClient: APIClient
+    @Inject
+    lateinit var apiClient: APIClient
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -26,15 +29,27 @@ class TestFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        apiClient.getArtistAlbums("2rhFzFmezpnW82MNqEKVry", "album,single")
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                val albums = it.filter { it.albumType == "album" }
-                val singles = it.filter { it.albumType == "single" }
-                albumsRecycler.adapter = HorizontalAlbumsAdapter(context!!, albums)
-                albumsRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-                singlesRecycler.adapter = HorizontalAlbumsAdapter(context!!, singles)
-                singlesRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        var albumId = "4aawyAB9vmqN3uQ7FjRGT"
+        val observable = Observable.defer { apiClient.getAlbumsTracks(albumId) }
+        observable
+            .retryWhen {
+                println("flow: retry when block")
+                albumId = "4aawyAB9vmqN3uQ7FjRGTy"
+                Observable.just("@")
             }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onNext = {
+                    it.forEach {
+                        println("flow: received track ${it.name}")
+                    }
+                },
+                onComplete = {
+                    println("flow: completed")
+                },
+                onError = {
+                    println("flow: error ${it.message}")
+                }
+            )
     }
 }

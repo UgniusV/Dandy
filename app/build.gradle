@@ -29,11 +29,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
@@ -51,10 +54,14 @@ dependencies {
     implementation 'com.makeramen:roundedimageview:2.3.0'
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'com.karumi:dividers:1.0.1'
+    implementation "android.arch.lifecycle:extensions:1.1.1"
     implementation 'com.spotify.android:auth:1.0.0-alpha'
     implementation 'com.joanzapata.iconify:android-iconify-typicons:2.2.2'
+    implementation "android.arch.lifecycle:viewmodel:1.1.1"
     implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
     implementation 'com.google.dagger:dagger:2.8'
+    implementation 'android.arch.persistence.room:runtime:1.1.1'
+    kapt 'android.arch.persistence.room:compiler:1.1.1'
     kapt 'com.google.dagger:dagger-compiler:2.5'
     compileOnly 'org.glassfish:javax.annotation:10.0-b28'
     testImplementation 'junit:junit:4.12'

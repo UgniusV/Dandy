@@ -12,7 +12,11 @@ class AlbumsDeserializer : JsonDeserializer<List<Album>> {
     override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): List<Album> {
         val albums = arrayListOf<Album>()
         json.asJsonObject.getAsJsonArray("items").forEach {
-            albums.add(deserializeAlbum(it.asJsonObject))
+            if (it.asJsonObject.get("added_at") == null) {
+                albums.add(deserializeAlbum(it.asJsonObject))
+            } else {
+                albums.add(deserializeAlbum(it.asJsonObject.get("album").asJsonObject))
+            }
         }
         return albums
 

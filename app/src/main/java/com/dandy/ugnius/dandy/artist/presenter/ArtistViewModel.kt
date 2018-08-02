@@ -1,6 +1,9 @@
 package com.dandy.ugnius.dandy.artist.presenter
 
-import com.dandy.ugnius.dandy.artist.view.ArtistView
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.ViewModel
+import com.Error
 import com.dandy.ugnius.dandy.model.clients.APIClient
 import com.dandy.ugnius.dandy.model.entities.Album
 import com.dandy.ugnius.dandy.model.entities.Artist
@@ -14,11 +17,20 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.LinkedHashSet
 
-class ArtistPresenter(private val apiClient: APIClient, private val artistsView: ArtistView) {
+class ArtistViewModel (private val apiClient: APIClient) : ViewModel() {
 
     private val compositeDisposable = CompositeDisposable()
     private val formatter = SimpleDateFormat("yyyy-mm-dd", Locale.getDefault())
     private var topTracksObservable: Observable<List<Track>>? = null
+
+    //immutable
+    var artist = MutableLiveData<Artist>()
+    //mutable
+    var topTracks = MutableLiveData<List<Track>>()
+    var tracks = MutableLiveData<List<Track>>()
+    var albums = MutableLiveData<List<Album>>()
+    var similarArtists = MutableLiveData<List<Artist>>()
+    var error = MutableLiveData<Error>()
 
     fun query(artistId: String, market: String, groups: String) {
         queryArtist(artistId)
@@ -36,22 +48,18 @@ class ArtistPresenter(private val apiClient: APIClient, private val artistsView:
 
     private fun queryArtist(artistId: String) {
         val disposable = apiClient.getArtist(artistId)
-            .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onSuccess = { artistsView.setArtistInfo(it) },
-                onError = {
-                    it.message?.let { artistsView.showError(it) }
-                }
+                onSuccess = { artist.postValue(it) },
+                onError = { it.message?.let { error.postValue(Error(it)) } }
             )
         compositeDisposable.add(disposable)
     }
 
     private fun queryTopTracks(artistId: String, market: String) {
         val disposable = getTopTracksObservable(artistId, market)
-            .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onNext = { artistsView.setArtistTopTracks(it) },
-                onError = { it.message?.let { artistsView.showError(it) } }
+                onNext = { topTracks.postValue(it) },
+                onError = { it.message?.let { error.postValue(Error(it)) } }
             )
         compositeDisposable.add(disposable)
     }
@@ -81,8 +89,8 @@ class ArtistPresenter(private val apiClient: APIClient, private val artistsView:
             }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onSuccess = { artistsView.setSimilarArtists(it) },
-                onError = { it.message?.let { artistsView.showError(it) } }
+                onSuccess = { similarArtists.postValue(it) },
+                onError = { it.message?.let { error.postValue(Error(it)) } }
             )
         compositeDisposable.add(disposable)
     }
@@ -107,18 +115,17 @@ class ArtistPresenter(private val apiClient: APIClient, private val artistsView:
             .zipWith(
                 getTopTracksObservable(artistId, market),
                 BiFunction { albums: List<Album>, topTracks: List<Track> ->
-                    with(artistsView) {
-                        val tracks = LinkedHashSet<Track>(topTracks + albums.flatMap { it.tracks!! }).toList()
-                        setAllTracksAndAlbums(tracks, LinkedHashSet<Album>(albums).toList())
-                    }
+                    val tracks = LinkedHashSet<Track>(topTracks + albums.flatMap { it.tracks!! }).toList()
+                    this.tracks.postValue(tracks)
+                    this.albums.postValue(LinkedHashSet<Album>(albums).toList())
                 })
-            .subscribeBy(onError = { it.message?.let { artistsView.showError(it) } }
+            .subscribeBy(onError = { it.message?.let { error.postValue(Error(it)) } }
             )
         compositeDisposable.add(disposable)
     }
 
-    fun clear() {
+    override fun onCleared() {
+        super.onCleared()
         compositeDisposable.clear()
     }
-
 }

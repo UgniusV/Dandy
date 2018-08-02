@@ -12,7 +12,11 @@
     <string name="songs">Songs</string>
     <string name="similar">Similar</string>
     <string name="log_in">Log in</string>
-    <string name="app_description">Dandy is a non comercial Spotify client with some performance and user interface adjustments. In order to use it you must have a premium Spotify account</string>
+    <string name="onboarding_first_page_description">Dandy is a non comercial Spotify client with some adjustments. In order to use it you must have a premium Spotify account</string>
+    <string name="onboarding_second_page_description">Since Dandy uses Spotify services, all your liked tracks, albums, artists etc. will be synced, also every change you make on Dandy affects your Spotify account</string>
+    <string name="hey_there">Hey There!</string>
+    <string name="meet_dandy">Meet Dandy</string>
+    <string name="Likes">Likes</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

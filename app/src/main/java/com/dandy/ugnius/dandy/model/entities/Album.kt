@@ -1,13 +1,16 @@
 package com.dandy.ugnius.dandy.model.entities
 
+import android.arch.persistence.room.*
+import com.dandy.ugnius.dandy.model.converters.Converters
 import com.google.gson.annotations.Expose
 
+@Entity
 class Album(
-    val albumType: String,
-    val artists: String,
-    val id: String,
+    var albumType: String,
+    var artists: String,
+    @PrimaryKey var id: String,
     var images: List<String>,
-    val name: String,
+    var name: String,
     val releaseDate: String,
     @Expose
     var tracks: List<Track>?
