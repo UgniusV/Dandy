@@ -10,8 +10,9 @@ class ItemOffsetDecoration(context: Context, offset: Int) : RecyclerView.ItemDec
 
     private val offset = dpToPx(context, offset)
 
-    override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State?) {
+    override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
         super.getItemOffsets(outRect, view, parent, state)
         outRect.set(offset, offset, offset, offset * 3)
     }
+
 }

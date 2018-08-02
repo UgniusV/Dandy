@@ -6,23 +6,14 @@ import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_LOW
 import android.app.Notification.VISIBILITY_PUBLIC
 import android.content.IntentFilter
-import android.net.ConnectivityManager
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.O
-import com.dandy.ugnius.dandy.di.components.DaggerMainComponent
-import com.dandy.ugnius.dandy.di.components.MainComponent
-import com.dandy.ugnius.dandy.di.modules.UtilitiesModule
 import com.dandy.ugnius.dandy.player.receiver.StreamingNotificationReceiver
 import android.net.ConnectivityManager.CONNECTIVITY_ACTION
 import com.dandy.ugnius.dandy.player.receivers.ConnectionStateReceiver
-import com.joanzapata.iconify.fonts.TypiconsModule
-import com.joanzapata.iconify.Iconify
 
 
-//TODO Add custom color ripple effect
 class App : Application() {
-
-    var mainComponent: MainComponent? = null
 
     companion object {
         const val CHANNEL_ID = "12345"
@@ -35,7 +26,6 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        createDependencyGraph()
         createNotificationChannelIfNeeded()
         val intentFilter = IntentFilter().apply {
             addAction(NOTIFICATION_ACTION_PLAY)
@@ -45,13 +35,6 @@ class App : Application() {
         }
         registerReceiver(StreamingNotificationReceiver(), intentFilter)
         registerReceiver(ConnectionStateReceiver(), IntentFilter(CONNECTIVITY_ACTION))
-        Iconify.with(TypiconsModule())
-    }
-
-    private fun createDependencyGraph() {
-        mainComponent = DaggerMainComponent.builder()
-            .utilitiesModule(UtilitiesModule(this))
-            .build()
     }
 
     /**

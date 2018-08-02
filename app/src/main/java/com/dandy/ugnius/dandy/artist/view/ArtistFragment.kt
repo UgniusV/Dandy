@@ -4,20 +4,21 @@ import android.content.Context
 import android.graphics.Color.WHITE
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.support.design.widget.AppBarLayout
 import android.view.View.VISIBLE
 import android.view.View.GONE
 import android.support.v4.app.Fragment
 import android.support.v4.view.PagerAdapter
 import android.support.v7.graphics.Palette
 import android.support.v7.widget.*
-import com.dandy.ugnius.dandy.model.entities.Album
-import com.dandy.ugnius.dandy.model.entities.Artist
-import com.dandy.ugnius.dandy.model.entities.Track
+import com.dandy.ugnius.dandy.global.entities.Album
+import com.dandy.ugnius.dandy.global.entities.Artist
+import com.dandy.ugnius.dandy.global.entities.Track
 import com.dandy.ugnius.dandy.artist.presenter.ArtistPresenter
 import android.view.*
 import com.App
 import com.dandy.ugnius.dandy.*
-import com.dandy.ugnius.dandy.model.clients.APIClient
+import com.dandy.ugnius.dandy.global.clients.APIClient
 import com.dandy.ugnius.dandy.artist.view.adapters.AlbumsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.SimilarArtistsAdapter
 import com.dandy.ugnius.dandy.artist.view.adapters.TracksAdapter
@@ -36,7 +37,8 @@ import io.reactivex.disposables.CompositeDisposable
 
 class ArtistFragment : Fragment(), ArtistView {
 
-    @Inject lateinit var apiClient: APIClient
+    //todo apply injection
+     lateinit var apiClient: APIClient
     private val formatter = NumberFormat.getNumberInstance(US)
     private val presenter by lazy { ArtistPresenter(apiClient, this) }
     private var searchItem: MenuItem? = null
@@ -64,7 +66,7 @@ class ArtistFragment : Fragment(), ArtistView {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        (activity?.applicationContext as App).mainComponent?.inject(this)
+//        (activity?.applicationContext as App).mainComponent?.inject(this)
         return inflater.inflate(R.layout.view_artist, container, false)
     }
 
@@ -78,7 +80,7 @@ class ArtistFragment : Fragment(), ArtistView {
         artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
         artistPager.adapter = ArtistPagerAdapter(context!!)
         artistPagerTabs.setupWithViewPager(artistPager)
-        collapsingAppBar.addOnOffsetChangedListener { appBarLayout, offset ->
+        collapsingAppBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, offset ->
             if (offset == -appBarLayout.totalScrollRange) {
                 searchItem?.isVisible = true
                 searchView?.visibility = VISIBLE
@@ -89,7 +91,7 @@ class ArtistFragment : Fragment(), ArtistView {
                 toolbar.collapseActionView()
                 (activity as? MainActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
             }
-        }
+        })
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?) {

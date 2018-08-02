@@ -5,33 +5,20 @@ import android.graphics.*
 import android.graphics.drawable.PaintDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.Color.WHITE
-import android.graphics.Color.BLACK
-import android.graphics.Color.GREEN
 import android.graphics.Shader.TileMode.CLAMP
-import android.graphics.drawable.Drawable
 import android.graphics.drawable.shapes.RectShape
-import android.graphics.PorterDuff.Mode.MULTIPLY
-import android.graphics.drawable.ColorDrawable
 import android.support.v7.graphics.Palette
 import io.reactivex.Maybe
 import android.support.v4.graphics.ColorUtils
-import android.support.v4.graphics.drawable.DrawableCompat
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
-import com.dandy.ugnius.dandy.model.entities.Track
 import com.github.florent37.viewanimator.ViewAnimator
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import io.reactivex.rxkotlin.subscribeBy
-import kotlinx.android.synthetic.main.view_artist.*
 import java.util.*
 
-
-fun <T> List<T?>.secondOrNull(): T? = if (size > 1) get(1) else null
 
 fun <T> List<T>.second(): T = get(1)
 
@@ -45,8 +32,8 @@ fun Bitmap.extractSwatch(): Maybe<Palette.Swatch> {
             emitter.onComplete()
         } else {
             Palette.from(this).generate { palette ->
-                val swatch = palette.vibrantSwatch ?: palette.mutedSwatch
-                ?: palette.darkVibrantSwatch ?: palette.dominantSwatch
+                val swatch = palette?.vibrantSwatch ?: palette?.mutedSwatch
+                ?: palette?.darkVibrantSwatch ?: palette?.dominantSwatch
                 if (swatch == null) {
                     emitter.onComplete()
                 } else {
@@ -101,18 +88,12 @@ fun getNumberOfColumns(context: Context, columnWidth: Int): Int {
     return width.toInt() / columnWidth
 }
 
-//todo 2 yra ihardcodintas kad 2 columns kai realiai ji reikia pasiduoti
+//2 is hardcoded we need to pass an actual value later on
 fun getGridItemDimensions(context: Context): Int {
     val metrics = context.resources.displayMetrics
     val padding = 32
     val width = (metrics.widthPixels / metrics.density) - padding
     return dpToPx(context, (width / 2).toInt())
-}
-
-fun pxToDp(context: Context, px: Int): Int {
-    val resources = context.resources
-    val metrics = resources.displayMetrics
-    return px / (metrics.densityDpi / 160f).toInt()
 }
 
 fun dpToPx(context: Context, dp: Int): Int {

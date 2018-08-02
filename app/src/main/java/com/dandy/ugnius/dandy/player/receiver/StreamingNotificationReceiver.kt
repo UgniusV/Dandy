@@ -22,7 +22,7 @@ class StreamingNotificationReceiver : BroadcastReceiver() {
     @Inject lateinit var notificationBuilder: NotificationCompat.Builder
 
     override fun onReceive(context: Context, intent: Intent) {
-        (context as App).mainComponent?.inject(this)
+//        (context as App).mainComponent?.inject(this)
         when (intent.action) {
             NOTIFICATION_ACTION_PLAY -> player.resume(null)
             NOTIFICATION_ACTION_PAUSE -> player.pause(null)

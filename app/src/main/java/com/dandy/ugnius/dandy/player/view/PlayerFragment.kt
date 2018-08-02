@@ -14,7 +14,7 @@ import android.view.*
 import android.widget.SeekBar
 import com.dandy.ugnius.dandy.*
 import com.dandy.ugnius.dandy.R
-import com.dandy.ugnius.dandy.model.entities.Track
+import com.dandy.ugnius.dandy.global.entities.Track
 import com.dandy.ugnius.dandy.main.MainActivity
 import com.dandy.ugnius.dandy.player.presenter.PlayerPresenter
 import com.spotify.sdk.android.player.*
@@ -68,7 +68,7 @@ class PlayerFragment : Fragment(), PlayerView {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ViewCompat.requestApplyInsets(root)
-        (activity?.applicationContext as App).mainComponent?.inject(this)
+//        (activity?.applicationContext as App).mainComponent?.inject(this)
         savedInstanceState?.let { playerPresenter.setState(it) }
         initializeViews()
         arguments?.let { playerPresenter.setState(it) }

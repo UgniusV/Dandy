@@ -1,10 +1,10 @@
 package com.dandy.ugnius.dandy.artist.presenter
 
 import com.dandy.ugnius.dandy.artist.view.ArtistView
-import com.dandy.ugnius.dandy.model.clients.APIClient
-import com.dandy.ugnius.dandy.model.entities.Album
-import com.dandy.ugnius.dandy.model.entities.Artist
-import com.dandy.ugnius.dandy.model.entities.Track
+import com.dandy.ugnius.dandy.global.clients.APIClient
+import com.dandy.ugnius.dandy.global.entities.Album
+import com.dandy.ugnius.dandy.global.entities.Artist
+import com.dandy.ugnius.dandy.global.entities.Track
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable

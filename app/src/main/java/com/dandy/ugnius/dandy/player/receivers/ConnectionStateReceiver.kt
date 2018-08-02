@@ -16,13 +16,13 @@ class ConnectionStateReceiver : BroadcastReceiver() {
     @Inject lateinit var player: SpotifyPlayer
 
     override fun onReceive(context: Context, intent: Intent?) {
-        (context as App).mainComponent?.inject(this)
-        val network = (context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager).activeNetworkInfo
-        val connectivity = if (network != null && network.isConnected) {
-            Connectivity.fromNetworkType(network.type)
-        } else {
-            OFFLINE
-        }
-        player.setConnectivityStatus(null, connectivity)
+//        (context as App).mainComponent?.inject(this)
+//        val network = (context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager).activeNetworkInfo
+//        val connectivity = if (network != null && network.isConnected) {
+//            Connectivity.fromNetworkType(network.type)
+//        } else {
+//            OFFLINE
+//        }
+//        player.setConnectivityStatus(null, connectivity)
     }
 }

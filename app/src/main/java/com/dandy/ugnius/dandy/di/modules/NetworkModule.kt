@@ -1,13 +1,13 @@
 package com.dandy.ugnius.dandy.di.modules
 
-import android.content.SharedPreferences
-import com.dandy.ugnius.dandy.model.clients.APIClient
-import com.dandy.ugnius.dandy.model.deserializers.*
-import com.dandy.ugnius.dandy.model.entities.Album
-import com.dandy.ugnius.dandy.model.entities.Artist
-import com.dandy.ugnius.dandy.model.entities.Track
-import com.dandy.ugnius.dandy.model.entities.PlaybackInfo
-import com.google.gson.FieldNamingPolicy
+import com.dandy.ugnius.dandy.global.clients.APIClient
+import com.dandy.ugnius.dandy.global.deserializers.*
+import com.dandy.ugnius.dandy.global.entities.Album
+import com.dandy.ugnius.dandy.global.entities.Artist
+import com.dandy.ugnius.dandy.global.entities.Track
+import com.dandy.ugnius.dandy.global.interceptors.AuthorizationInterceptor
+import com.dandy.ugnius.dandy.login.model.clients.AuthenticationClient
+import com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import dagger.Module
@@ -17,35 +17,28 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Singleton
+import javax.inject.Named
+import okhttp3.logging.HttpLoggingInterceptor
 
-@Module(includes = [UtilitiesModule::class])
+
+
+@Module(includes = [GeneralModule::class])
 class NetworkModule {
 
-    @Singleton
     @Provides
-    fun provideOkHttpClient(authenticationPreferences: SharedPreferences?) = with(OkHttpClient().newBuilder()) {
-        val accessToken = authenticationPreferences?.getString("access_token", "") ?: ""
-        addInterceptor { chain ->
-            val originalRequest = chain.request()
-            val builder = originalRequest.newBuilder().header("Authorization", " Bearer $accessToken")
-            val modifiedRequest = builder.build()
-            chain.proceed(modifiedRequest)
-        }
-        build()
+    fun provideOkHttpClient(interceptor: AuthorizationInterceptor): OkHttpClient {
+        return OkHttpClient().newBuilder().apply { addInterceptor(interceptor) }.build()
     }
 
-    @Singleton
     @Provides
     fun provideGsonConverterFactory(): GsonConverterFactory {
         val trackListType = TypeToken.getParameterized(List::class.java, Track::class.java).type
         val albumsListType = TypeToken.getParameterized(List::class.java, Album::class.java).type
         val artistsListType = TypeToken.getParameterized(List::class.java, Artist::class.java).type
         val builder = GsonBuilder().apply {
-            setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            setFieldNamingPolicy(LOWER_CASE_WITH_UNDERSCORES)
             registerTypeAdapter(Track::class.java, TrackDeserializer())
             registerTypeAdapter(Artist::class.java, ArtistDeserializer())
-            registerTypeAdapter(PlaybackInfo::class.java, PlaybackInfoDeserializer())
             registerTypeAdapter(trackListType, TracksDeserializer())
             registerTypeAdapter(albumsListType, AlbumsDeserializer())
             registerTypeAdapter(artistsListType, ArtistsDeserializer())
@@ -53,7 +46,13 @@ class NetworkModule {
         return GsonConverterFactory.create(builder.create())
     }
 
-    @Singleton
+    @Provides
+    @Named("authentication")
+    fun provideAuthGsonConverterFactory(): GsonConverterFactory {
+        val builder = GsonBuilder().apply { setFieldNamingPolicy(LOWER_CASE_WITH_UNDERSCORES) }
+        return GsonConverterFactory.create(builder.create())
+    }
+
     @Provides
     fun provideRetrofit(
         gsonConverterFactory: GsonConverterFactory,
@@ -66,8 +65,26 @@ class NetworkModule {
         build()
     }
 
-    @Singleton
     @Provides
     fun provideClient(retrofit: Retrofit) = retrofit.create(APIClient::class.java)
+
+    @Provides
+    @Named("authentication")
+    fun provideAuthRetrofit(@Named("authentication") gsonConverterFactory: GsonConverterFactory): Retrofit {
+        val logging = HttpLoggingInterceptor()
+        logging.level = HttpLoggingInterceptor.Level.BODY
+        return with(Retrofit.Builder()) {
+            baseUrl("https://dry-mesa-35155.herokuapp.com/")
+            addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+            addConverterFactory(gsonConverterFactory)
+            client(OkHttpClient().newBuilder().addInterceptor(logging).build())
+            build()
+        }
+    }
+
+    @Provides
+    fun provideAuthClient(@Named("authentication") retrofit: Retrofit): AuthenticationClient {
+        return retrofit.create(AuthenticationClient::class.java)
+    }
 
 }

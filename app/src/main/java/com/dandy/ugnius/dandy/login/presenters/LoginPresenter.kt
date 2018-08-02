@@ -1,0 +1,85 @@
+package com.dandy.ugnius.dandy.login.presenters
+
+import com.dandy.ugnius.dandy.global.clients.APIClient
+import com.dandy.ugnius.dandy.global.entities.Album
+import com.dandy.ugnius.dandy.login.model.clients.AuthenticationClient
+import com.dandy.ugnius.dandy.login.interfaces.LoginView
+import com.dandy.ugnius.dandy.global.repositories.Repository
+import io.reactivex.Observable
+import io.reactivex.Single
+import io.reactivex.functions.Function3
+import io.reactivex.rxkotlin.subscribeBy
+import java.util.concurrent.TimeUnit.SECONDS
+import io.reactivex.schedulers.Schedulers
+import retrofit2.HttpException
+import javax.inject.Inject
+
+class LoginPresenter @Inject constructor(
+    private val loginView: LoginView,
+    private val authenticationClient: AuthenticationClient,
+    private val apiClient: APIClient,
+    private val repository: Repository
+) {
+
+    private val retryCondition = { errors: Observable<Throwable> ->
+        var delay = 1L
+        val maximumAttempts = 3
+        var attempts = 0
+        errors.flatMap {
+            val isBadGateway = (it as? HttpException)?.code() == 502
+            if (isBadGateway && attempts < maximumAttempts) {
+                println("flow: bad request")
+                attempts += 1
+                delay *= 2
+                Observable.timer(delay, SECONDS)
+            } else {
+                Observable.error(it)
+            }
+        }
+    }
+
+    fun login(code: String) {
+        authenticationClient.getCredentials(code)
+            .retryWhen(retryCondition)
+            .map { repository.insertCredentials(it) }
+            .flatMapSingle { getUserLibraryQuery() }
+            .subscribeBy(
+                onComplete = { loginView.goToMainFragment() },
+                onError = {
+                    it.message?.let { loginView.showError(it) } }
+            )
+    }
+
+    private fun getUserLibraryQuery(): Single<Unit> {
+
+        fun getSavedTracksQuery() = apiClient.getSavedTracks(0, 50).subscribeOn(Schedulers.io())
+
+        fun getSavedAlbumsQuery(): Single<List<Album>> {
+            return apiClient.getSavedAlbums()
+                .flatMapIterable { it }
+                .flatMap(
+                    { apiClient.getAlbumsTracks(it.id) },
+                    { album, tracks -> album.also { it.tracks = tracks } }
+                )
+                .toList()
+                .subscribeOn(Schedulers.io())
+        }
+
+        fun getFollowingArtistsQuery() = apiClient.getFollowingArtists("artist").subscribeOn(Schedulers.io())
+
+        return Single.zip(
+            getSavedTracksQuery(),
+            getSavedAlbumsQuery(),
+            getFollowingArtistsQuery(),
+            Function3 { tracks, albums, artists ->
+                with(repository) {
+                    insertTracks(tracks)
+                    insertAlbums(albums)
+                    insertArtists(artists)
+
+                }
+            }
+        )
+
+    }
+}
