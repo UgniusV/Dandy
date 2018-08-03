@@ -9,8 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.*
-import com.dandy.ugnius.dandy.model.entities.Artist
-import com.dandy.ugnius.dandy.model.entities.Track
+import com.dandy.ugnius.dandy.global.entities.Artist
+import com.dandy.ugnius.dandy.global.entities.Track
 import kotlinx.android.synthetic.main.similar_artist_cell_entry.view.*
 import java.text.NumberFormat
 

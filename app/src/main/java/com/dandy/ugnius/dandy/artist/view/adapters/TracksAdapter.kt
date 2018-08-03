@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.R
-import com.dandy.ugnius.dandy.model.entities.Track
+import com.dandy.ugnius.dandy.global.entities.Track
 import com.dandy.ugnius.dandy.second
 import kotlinx.android.synthetic.main.track_entry.view.*
 

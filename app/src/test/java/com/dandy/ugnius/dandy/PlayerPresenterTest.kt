@@ -1,7 +1,7 @@
 package com.dandy.ugnius.dandy
 
 import android.os.Bundle
-import com.dandy.ugnius.dandy.model.entities.Track
+import com.dandy.ugnius.dandy.global.entities.Track
 import com.dandy.ugnius.dandy.player.presenter.PlayerPresenter
 import com.dandy.ugnius.dandy.player.view.PlayerView
 import org.junit.Test

@@ -1,6 +1,6 @@
 package com.dandy.ugnius.dandy
 
-import com.dandy.ugnius.dandy.model.entities.Track
+import com.dandy.ugnius.dandy.global.entities.Track
 import org.junit.Test
 import junit.framework.Assert
 

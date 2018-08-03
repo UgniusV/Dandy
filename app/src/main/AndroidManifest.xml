@@ -3,7 +3,7 @@
     package="com.dandy.ugnius.dandy">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name="com.App"
@@ -16,13 +16,8 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".main.MainActivity"
-            android:label=""
-            android:windowSoftInputMode="adjustNothing"
-            android:hardwareAccelerated="true">
-        </activity>
-        <activity
-            android:name=".login.view.LoginActivity"
-            android:hardwareAccelerated="true">
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustNothing">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

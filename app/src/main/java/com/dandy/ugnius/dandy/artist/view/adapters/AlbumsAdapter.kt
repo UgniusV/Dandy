@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.getGridItemDimensions
-import com.dandy.ugnius.dandy.model.entities.Album
+import com.dandy.ugnius.dandy.global.entities.Album
 import com.dandy.ugnius.dandy.second
 import com.makeramen.roundedimageview.RoundedImageView
 import kotlinx.android.synthetic.main.album_cell_entry.view.*

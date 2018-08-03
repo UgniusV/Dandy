@@ -1,8 +1,8 @@
 package com.dandy.ugnius.dandy.artist.view
 
-import com.dandy.ugnius.dandy.model.entities.Album
-import com.dandy.ugnius.dandy.model.entities.Artist
-import com.dandy.ugnius.dandy.model.entities.Track
+import com.dandy.ugnius.dandy.global.entities.Album
+import com.dandy.ugnius.dandy.global.entities.Artist
+import com.dandy.ugnius.dandy.global.entities.Track
 
 interface ArtistView {
     fun setArtistInfo(artist: Artist)
