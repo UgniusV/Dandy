@@ -90,6 +90,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:2.21.0'
 
     //integration tests
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation "com.android.support.test:runner:$rootProject.testRunnerVersion"
+    androidTestImplementation "com.android.support.test:rules:$rootProject.testRunnerVersion"
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }

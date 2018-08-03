@@ -41,25 +41,36 @@ class LoginPresenter @Inject constructor(
     fun login(code: String) {
         authenticationClient.getCredentials(code)
             .retryWhen(retryCondition)
-            .map { repository.insertCredentials(it) }
-            .flatMapSingle { getUserLibraryQuery() }
+            .map {
+                repository.insertCredentials(it)
+            }
+            .flatMapSingle {
+                getUserLibraryQuery()
+            }
             .subscribeBy(
-                onComplete = { loginView.goToMainFragment() },
+                onComplete = {
+                    loginView.goToMainFragment()
+                },
                 onError = {
                     it.message?.let { loginView.showError(it) } }
             )
     }
 
+    //todo implement increasing offset queries
     private fun getUserLibraryQuery(): Single<Unit> {
 
         fun getSavedTracksQuery() = apiClient.getSavedTracks(0, 50).subscribeOn(Schedulers.io())
 
         fun getSavedAlbumsQuery(): Single<List<Album>> {
             return apiClient.getSavedAlbums()
-                .flatMapIterable { it }
+                .flatMapIterable {
+                    it
+                }
                 .flatMap(
                     { apiClient.getAlbumsTracks(it.id) },
-                    { album, tracks -> album.also { it.tracks = tracks } }
+                    { album, tracks ->
+                        album.also { it.tracks = tracks }
+                    }
                 )
                 .toList()
                 .subscribeOn(Schedulers.io())
@@ -76,7 +87,6 @@ class LoginPresenter @Inject constructor(
                     insertTracks(tracks)
                     insertAlbums(albums)
                     insertArtists(artists)
-
                 }
             }
         )

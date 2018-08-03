@@ -21,8 +21,7 @@ class GeneralModule(private val context: Context) {
 
     @Provides
     fun provideSpotifyPlayer(repository: Repository): SpotifyPlayer {
-//        val accessToken = repository.getCredentials()?.accessToken
-        //refactor to get on background thread
+        val accessToken = repository.getCredentials()?.accessToken
         val playerConfig = Config(context, accessToken, CLIENT_ID)
         return Spotify.getPlayer(playerConfig, context, null)
 
@@ -30,7 +29,9 @@ class GeneralModule(private val context: Context) {
 
     @Provides
     fun provideAppDatabase(): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, "appDatabase-name").build()
+        return Room.databaseBuilder(context, AppDatabase::class.java, "appDatabase-name")
+            .allowMainThreadQueries()
+            .build()
     }
 
     @Singleton
