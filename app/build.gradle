@@ -29,6 +29,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {
@@ -88,6 +91,7 @@ dependencies {
     //unit tests
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:2.21.0'
+    testImplementation "android.arch.core:core-testing:$rootProject.archVersion"
 
     //integration tests
     androidTestImplementation "com.android.support.test:runner:$rootProject.testRunnerVersion"

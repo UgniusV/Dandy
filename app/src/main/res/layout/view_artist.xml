@@ -1,102 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout>
 
-    <android.support.design.widget.AppBarLayout
-        android:id="@+id/collapsingAppBar"
+    <data>
+
+        <import type="com.dandy.ugnius.dandy.global.entities.Artist"/>
+
+        <variable
+            name="artist"
+            type="Artist" />
+    </data>
+
+    <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:fitsSystemWindows="true">
+        android:layout_height="match_parent">
 
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/collapsingLayout"
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/collapsingAppBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:expandedTitleMarginBottom="32dp"
-            app:expandedTitleMarginStart="16dp"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            android:layout_height="250dp"
+            android:fitsSystemWindows="true">
 
-            <android.support.constraint.ConstraintLayout
+            <android.support.design.widget.CollapsingToolbarLayout
+                android:id="@+id/collapsingLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fitsSystemWindows="true"
-                app:layout_collapseMode="parallax">
+                app:expandedTitleMarginBottom="32dp"
+                app:expandedTitleMarginStart="16dp"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:title="@{artist.name}">
 
-                <ImageView
-                    android:id="@+id/background"
-                    android:layout_width="0dp"
-                    android:layout_height="250dp"
-                    android:scaleType="centerCrop"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="65dp"
-                    android:background="@drawable/faded_scrim"
-                    android:rotation="180"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="65dp"
-                    android:background="@drawable/faded_scrim"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/followers"
-                    android:layout_width="wrap_content"
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginBottom="5dp"
-                    android:textColor="@android:color/white"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    android:fitsSystemWindows="true"
+                    app:layout_collapseMode="parallax">
 
-            </android.support.constraint.ConstraintLayout>
+                    <ImageView
+                        android:id="@+id/background"
+                        android:layout_width="0dp"
+                        android:layout_height="250dp"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin" />
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="65dp"
+                        android:background="@drawable/faded_dark_scrim"
+                        android:rotation="180"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
 
-        </android.support.design.widget.CollapsingToolbarLayout>
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="65dp"
+                        android:background="@drawable/faded_dark_scrim"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-    </android.support.design.widget.AppBarLayout>
+                    <TextView
+                        android:id="@+id/followers"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="@{@string/followers(artist.followers)}"
+                        android:textColor="@android:color/white"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
 
-    <android.support.v4.view.ViewPager
-        android:id="@+id/artistPager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/transparentWhite"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+                </android.support.constraint.ConstraintLayout>
 
-        <android.support.design.widget.TabLayout
-            android:id="@+id/artistPagerTabs"
+                <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:layout_collapseMode="pin" />
+
+            </android.support.design.widget.CollapsingToolbarLayout>
+
+        </android.support.design.widget.AppBarLayout>
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/artistPager"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            app:tabTextAppearance="@android:style/TextAppearance.Widget.TabWidget" />
+            android:layout_height="match_parent"
+            android:background="@color/transparentWhite"
+            android:overScrollMode="never"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    </android.support.v4.view.ViewPager>
+            <android.support.design.widget.TabLayout
+                android:id="@+id/artistPagerTabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                app:tabTextAppearance="@android:style/TextAppearance.Widget.TabWidget" />
 
-    <ProgressBar
-        android:id="@+id/loader"
-        android:layout_width="50dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="250dp"
-        android:indeterminateTint="@android:color/black"
-        android:layout_height="50dp" />
+        </android.support.v4.view.ViewPager>
 
-</android.support.design.widget.CoordinatorLayout>
+        <ProgressBar
+            android:id="@+id/loader"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="250dp"
+            android:indeterminateTint="@android:color/black"
+            android:visibility="gone" />
+
+    </android.support.design.widget.CoordinatorLayout>
+</layout>

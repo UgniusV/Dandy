@@ -19,7 +19,6 @@ import javax.inject.Inject
 import org.greenrobot.eventbus.ThreadMode
 import org.greenrobot.eventbus.Subscribe
 
-
 interface LoginFragmentDelegate {
     fun onLoginButtonPressed()
     fun onAuthenticationSuccess()
@@ -40,17 +39,12 @@ class LoginFragment : Fragment(), LoginView {
         return inflater.inflate(R.layout.fragment_login, container, false)
     }
 
-
     override fun onStart() {
         super.onStart()
         eventBus.register(this)
     }
 
-    override fun onStop() {
-        super.onStop()
-        eventBus.unregister(this)
-    }
-
+    //todo refactor this later on
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ViewAnimator.animate(meetDandy)
@@ -67,41 +61,34 @@ class LoginFragment : Fragment(), LoginView {
             .start()
     }
 
-    private fun login(code: String) {
-        ViewAnimator.animate(meetDandy)
-            .duration(250)
-            .fadeOut()
-            .andAnimate(description)
-            .fadeOut()
-            .duration(250)
-            .onStart { loginPresenter.login(code) }
-            .onStop {
-                val message = context!!.getString(R.string.logging_in)
-                loader?.playLoadingAnimation(message)
-            }
-            .start()
+    override fun onStop() {
+        super.onStop()
+        eventBus.unregister(this)
     }
 
-    @SuppressWarnings("unused")
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onUserCredentialsEnteredEvent(event: UserCredentialsEnteredEvent) {
-        login(event.code)
+
+    private fun login(code: String) {
+        fade(
+            views = *arrayOf(meetDandy, description, loginButton),
+            values = floatArrayOf(1F, 0.5F, 0F),
+            onStart = { loginPresenter.login(code) },
+            onStop = { loader?.playLoadingAnimation(context!!.getString(R.string.logging_in)) })
     }
 
     override fun showError(message: String) {
         loader?.playErrorAnimation(message) {
-            ViewAnimator.animate(meetDandy)
-                .duration(250)
-                .fadeIn()
-                .andAnimate(description)
-                .duration(250)
-                .fadeIn()
-                .start()
+            fade(views = *arrayOf(meetDandy, description, loginButton), values = floatArrayOf(0F, 0.5F, 1F))
         }
     }
 
     override fun goToMainFragment() {
         delegate?.onAuthenticationSuccess()
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onUserCredentialsEnteredEvent(event: UserCredentialsEnteredEvent) {
+        login(event.code)
+    }
+
 
 }

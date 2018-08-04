@@ -1,6 +1,5 @@
 package com.dandy.ugnius.dandy.di.components
 
-import com.dandy.ugnius.dandy.artist.view.ArtistFragment
 import com.dandy.ugnius.dandy.di.modules.GeneralModule
 import com.dandy.ugnius.dandy.main.MainActivity
 import com.dandy.ugnius.dandy.player.receiver.StreamingNotificationReceiver
@@ -15,7 +14,6 @@ import javax.inject.Singleton
 interface MainComponent {
     fun inject(playerFragment: PlayerFragment)
     fun inject(streamingNotificationReceiver: StreamingNotificationReceiver)
-    fun inject(artistFragment: ArtistFragment)
     fun inject(connectionStateReceiver: ConnectionStateReceiver)
     fun inject(mainActivity: MainActivity)
 }

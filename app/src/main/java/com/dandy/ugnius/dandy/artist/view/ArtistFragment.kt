@@ -1,6 +1,6 @@
 package com.dandy.ugnius.dandy.artist.view
 
-import android.content.Context
+import android.databinding.DataBindingUtil
 import android.graphics.Color.WHITE
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -8,77 +8,61 @@ import android.support.design.widget.AppBarLayout
 import android.view.View.VISIBLE
 import android.view.View.GONE
 import android.support.v4.app.Fragment
-import android.support.v4.view.PagerAdapter
 import android.support.v7.graphics.Palette
 import android.support.v7.widget.*
 import com.dandy.ugnius.dandy.global.entities.Album
 import com.dandy.ugnius.dandy.global.entities.Artist
 import com.dandy.ugnius.dandy.global.entities.Track
-import com.dandy.ugnius.dandy.artist.presenter.ArtistPresenter
+import com.dandy.ugnius.dandy.artist.presenter.ArtistViewModel
 import android.view.*
-import com.App
 import com.dandy.ugnius.dandy.*
-import com.dandy.ugnius.dandy.global.clients.APIClient
-import com.dandy.ugnius.dandy.artist.view.adapters.AlbumsAdapter
-import com.dandy.ugnius.dandy.artist.view.adapters.SimilarArtistsAdapter
-import com.dandy.ugnius.dandy.artist.view.adapters.TracksAdapter
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.view_artist.*
 import com.dandy.ugnius.dandy.main.MainActivity
-import java.text.NumberFormat
-import java.util.Locale.US
-import javax.inject.Inject
-import com.dandy.ugnius.dandy.artist.view.decorations.ItemOffsetDecoration
-import android.support.v7.widget.RecyclerView
 import android.widget.ImageView
+import com.dandy.ugnius.dandy.artist.view.adapters.*
+import com.dandy.ugnius.dandy.databinding.ViewArtistBinding
+import com.dandy.ugnius.dandy.di.components.DaggerViewModelComponent
+import com.dandy.ugnius.dandy.di.modules.GeneralModule
+import com.dandy.ugnius.dandy.global.factories.ViewModelFactory
 import com.jakewharton.rxbinding2.support.v4.view.RxViewPager
 import com.jakewharton.rxbinding2.support.v7.widget.RxSearchView
 import io.reactivex.disposables.CompositeDisposable
+import javax.inject.Inject
 
-class ArtistFragment : Fragment(), ArtistView {
+class ArtistFragment : Fragment(), TracksAdapterDelegate, AlbumsAdapterDelegate, ArtistsAdapterDelegate {
 
-    //todo apply injection
-     lateinit var apiClient: APIClient
-    private val formatter = NumberFormat.getNumberInstance(US)
-    private val presenter by lazy { ArtistPresenter(apiClient, this) }
-    private var searchItem: MenuItem? = null
-    private var searchView: SearchView? = null
+    private val pagerAdapter by lazy { ArtistPagerAdapter(context!!, this, this, this) }
+    @Inject lateinit var viewModelFactory: ViewModelFactory
     private var compositeDisposable = CompositeDisposable()
-
-    private val tracksAdapter by lazy {
-        TracksAdapter(
-            context = context!!,
-            onTrackClicked = { currentTrack, tracks -> (this::onArtistTrackClicked)(currentTrack, tracks) }
-        )
-    }
-    private val albumsAdapter by lazy {
-        AlbumsAdapter(
-            context = context!!,
-            onAlbumClicked = { album -> (this::onAlbumClicked)(album) }
-        )
-    }
-    private val similarArtistsAdapter by lazy {
-        SimilarArtistsAdapter(
-            context = context!!,
-            onTrackClicked = { currentTrack, tracks -> (this::onArtistTrackClicked)(currentTrack, tracks) },
-            onArtistClicked = { artist -> (context as MainActivity).onArtistClicked(artist.id) }
-        )
-    }
+    private var viewModel: ArtistViewModel? = null
+    private var binding: ViewArtistBinding? = null
+    private var searchView: SearchView? = null
+    private var searchItem: MenuItem? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-//        (activity?.applicationContext as App).mainComponent?.inject(this)
-        return inflater.inflate(R.layout.view_artist, container, false)
+        DaggerViewModelComponent.builder()
+            .generalModule(GeneralModule(context!!))
+            .build()
+            .inject(this)
+        viewModel = withViewModel(viewModelFactory) {
+            observe(artist) { setArtistInfo(it!!) }
+            observe(topTracks) { pagerAdapter.tracksAdapter.setTracks(it!!) }
+            observe(tracks) { pagerAdapter.tracksAdapter.setTracks(it!!) }
+            observe(albums) { pagerAdapter.albumsAdapter.setAlbums(it!!) }
+            observe(similarArtists) { pagerAdapter.artistsAdapter.setArtists(it!!) }
+        }
+        binding = DataBindingUtil.inflate(inflater, R.layout.view_artist, container, false)
+        return binding?.root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        arguments?.getString("artistId")?.let {
-            presenter.query(it, "ES", "album,single")
-        }
+        arguments?.getString("artistId")?.let { viewModel?.query(it, "ES", "album,single") }
         setHasOptionsMenu(true)
         (activity as MainActivity).setSupportActionBar(toolbar)
         artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
-        artistPager.adapter = ArtistPagerAdapter(context!!)
+        artistPager.adapter = pagerAdapter
         artistPagerTabs.setupWithViewPager(artistPager)
         collapsingAppBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, offset ->
             if (offset == -appBarLayout.totalScrollRange) {
@@ -96,37 +80,20 @@ class ArtistFragment : Fragment(), ArtistView {
 
     override fun onPrepareOptionsMenu(menu: Menu?) {
         super.onPrepareOptionsMenu(menu)
-        val pagerDisposable = RxViewPager.pageSelections(artistPager).subscribe {
-            searchView!!.setQuery("", false)
-            when (it) {
-                0 -> tracksAdapter.reset()
-                1 -> albumsAdapter.reset()
-                else -> similarArtistsAdapter.reset()
-            }
-        }
-        val searchViewDisposable = RxSearchView.queryTextChanges(searchView!!).subscribe { query ->
-            when (artistPager.currentItem) {
-                0 -> {
-                    val filteredEntries = tracksAdapter.unmodifiableEntries?.filter { it.name.contains(query, true) }
-                    filteredEntries?.let { tracksAdapter.setAllTracks(filteredEntries) }
-                }
-                1 -> {
-                    val filteredEntries = albumsAdapter.unmodifiableEntries?.filter { it.name.contains(query, true) }
-                    filteredEntries?.let { albumsAdapter.setAlbums(it) }
-                }
-                else -> {
-                    val filteredEntries = similarArtistsAdapter.unmodifiableEntries?.filter { it.name.contains(query, true) }
-                    filteredEntries?.let { similarArtistsAdapter.setSimilarArtists(it) }
-                }
-            }
-        }
+        val pagerDisposable = RxViewPager.pageSelections(artistPager)
+            .map { pagerAdapter.reset(it) }
+            .subscribe { searchView?.setQuery("", false) }
+
+        val searchViewDisposable = RxSearchView.queryTextChanges(searchView!!)
+            .map { pagerAdapter.filter(artistPager.currentItem, it) }
+            .subscribe()
+
         compositeDisposable.addAll(pagerDisposable, searchViewDisposable)
 
     }
 
-    override fun setArtistInfo(artist: Artist) {
-        followers?.text = String.format(getString(R.string.followers, formatter.format(artist.followers)))
-        collapsingLayout?.title = artist.name
+    private fun setArtistInfo(artist: Artist) {
+        binding?.artist = artist
         background?.loadBitmap(artist.images.first(), context!!) {
             it.extractSwatch().subscribeBy(
                 onSuccess = { setAccentColor(it) },
@@ -135,28 +102,17 @@ class ArtistFragment : Fragment(), ArtistView {
         }
     }
 
-    override fun setArtistTopTracks(tracks: List<Track>) {
-        loader.visibility = GONE
-        tracksAdapter.setTopTracks(tracks)
+    override fun onStop() {
+        super.onStop()
     }
 
-    override fun setAllTracksAndAlbums(tracks: List<Track>, albums: List<Album>) {
-        tracksAdapter.setAllTracks(tracks)
-        albumsAdapter.setAlbums(albums)
+    //todo move this to activity edelegate
+    override fun onTrackClicked(currentTrack: Track, allTracks: List<Track>) {
+        (context as? MainActivity)?.onArtistTrackClicked(currentTrack, allTracks)
     }
 
-    override fun setSimilarArtists(similarArtists: List<Artist>) {
-        similarArtistsAdapter.setSimilarArtists(similarArtists)
-    }
-
-    private fun onArtistTrackClicked(currentTrack: Track, tracks: List<Track>) {
-        (context as? MainActivity)?.onArtistTrackClicked(currentTrack, tracks)
-    }
-
-    private fun onAlbumClicked(album: Album) = (context as? MainActivity)?.onAlbumClicked(album)
-
-    override fun showError(message: String) {
-        //show error
+    override fun onAlbumClicked(album: Album) {
+        (context as? MainActivity)?.onAlbumClicked(album)
     }
 
     private fun setAccentColor(swatch: Palette.Swatch) {
@@ -172,9 +128,13 @@ class ArtistFragment : Fragment(), ArtistView {
         }
     }
 
+    override fun onArtistClicked(artist: Artist) {
+        (context as MainActivity).onArtistClicked(artist.id)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater?) {
         (activity as MainActivity).menuInflater.inflate(R.menu.artist_toolbar_menu, menu)
-        searchItem = menu.findItem(R.id.action_search)
+        searchItem = menu.findItem(R.id.search)
         searchView = (searchItem?.actionView as? SearchView)?.apply {
             setIconifiedByDefault(false)
             queryHint = context?.getString(R.string.search)
@@ -184,60 +144,19 @@ class ArtistFragment : Fragment(), ArtistView {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return if (item?.itemId == R.id.actionFavorite) {
-            //add artist to favorites
-            true
-        } else {
-            return super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.clear()
-        presenter.clear()
-    }
-
-    private inner class ArtistPagerAdapter(context: Context) : PagerAdapter() {
-
-        private val inflater = LayoutInflater.from(context)
-
-        override fun getCount() = ARTIST_PAGER_ENTRIES_COUNT
-
-        override fun isViewFromObject(view: android.view.View, `object`: Any) = view == `object`
-
-        override fun instantiateItem(container: ViewGroup, position: Int): Any {
-            val artistRecycler = inflater.inflate(R.layout.artist_recycler, container, false) as RecyclerView
-            with(artistRecycler) {
-                when (position) {
-                    0 -> {
-                        adapter = tracksAdapter
-                        layoutManager = LinearLayoutManager(context)
-                    }
-                    1 -> {
-                        adapter = albumsAdapter
-                        layoutManager = GridLayoutManager(context, 2)
-                        addItemDecoration(ItemOffsetDecoration(context, 4))
-                    }
-                    2 -> {
-                        adapter = similarArtistsAdapter
-                        layoutManager = LinearLayoutManager(context)
-                    }
-                }
-                container.addView(this)
-                return artistRecycler
+        return when(item?.itemId) {
+            R.id.favorite -> true
+            R.id.search -> super.onOptionsItemSelected(item)
+            else -> {
+                activity?.supportFragmentManager?.popBackStack()
+                true
             }
         }
-
-        override fun destroyItem(container: ViewGroup, position: Int, view: Any) {
-            container.removeView(view as android.view.View)
-        }
-
-        override fun getPageTitle(position: Int) = when (position) {
-            0 -> context?.getString(R.string.songs)
-            1 -> context?.getString(R.string.albums)
-            2 -> context?.getString(R.string.similar)
-            else -> throw IllegalArgumentException("Invalid item count was specified")
-        }
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        compositeDisposable.clear()
+    }
+
 }

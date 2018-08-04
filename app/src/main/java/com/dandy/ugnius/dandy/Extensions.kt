@@ -1,5 +1,7 @@
 package com.dandy.ugnius.dandy
 
+import android.arch.lifecycle.*
+import android.arch.lifecycle.Observer
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.PaintDrawable
@@ -7,6 +9,7 @@ import android.graphics.drawable.ShapeDrawable
 import android.graphics.Color.WHITE
 import android.graphics.Shader.TileMode.CLAMP
 import android.graphics.drawable.shapes.RectShape
+import android.support.v4.app.Fragment
 import android.support.v7.graphics.Palette
 import io.reactivex.Maybe
 import android.support.v4.graphics.ColorUtils
@@ -16,9 +19,9 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
+import com.github.florent37.viewanimator.AnimationBuilder
 import com.github.florent37.viewanimator.ViewAnimator
 import java.util.*
-
 
 fun <T> List<T>.second(): T = get(1)
 
@@ -139,4 +142,40 @@ fun View.shade(color: Int, ratio: Float) {
         shaderFactory = shader
         background = this
     }
+}
+
+fun fade(
+    vararg views: View,
+    values: FloatArray,
+    duration: Long = 250,
+    delay: Long = 0,
+    onStart: () -> Unit = {},
+    onStop: () -> Unit = {}
+) {
+    var animationBuilder: AnimationBuilder? = null
+    views.forEachIndexed { index, view ->
+        if (index == 0) {
+            animationBuilder = ViewAnimator.animate(view).alpha(*values)
+        } else {
+            animationBuilder?.andAnimate(view)?.alpha(*values)
+        }
+    }
+    animationBuilder?.duration(duration)
+        ?.onStart(onStart)
+        ?.onStop(onStop)
+        ?.startDelay(delay)
+        ?.start()
+}
+
+
+inline fun <reified T : ViewModel> Fragment.getViewModel(viewModelFactory: ViewModelProvider.Factory): T {
+    return ViewModelProviders.of(this, viewModelFactory)[T::class.java]
+}
+
+inline fun <reified T : ViewModel> Fragment.withViewModel(viewModelFactory: ViewModelProvider.Factory, body: T.() -> Unit): T {
+    return getViewModel<T>(viewModelFactory).apply { body() }
+}
+
+fun <T : Any, L : LiveData<T>> LifecycleOwner.observe(liveData: L, body: (T?) -> Unit) {
+    liveData.observe(this, Observer(body))
 }
