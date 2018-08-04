@@ -17,6 +17,7 @@ class HomeViewModel(private val apiClient: APIClient) : ViewModel() {
 
     private var disposable: Disposable? = null
     var entry = MutableLiveData<HomeAdapter.HomeAdapterEntry>()
+    //will be observed on view layer later on
     var error = MutableLiveData<Error>()
 
     fun getEntries() {

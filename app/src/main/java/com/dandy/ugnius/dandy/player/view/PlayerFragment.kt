@@ -83,6 +83,7 @@ class PlayerFragment : Fragment(), PlayerView {
         ViewCompat.requestApplyInsets(root)
         savedInstanceState?.let { playerPresenter.setState(it) }
         initializeViews()
+        seekbar?.progress = 0
         arguments?.let { playerPresenter.setState(it) }
         playerPresenter.playTrack()
 

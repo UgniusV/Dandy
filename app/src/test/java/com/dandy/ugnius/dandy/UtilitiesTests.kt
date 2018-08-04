@@ -10,7 +10,7 @@ class UtilitiesTests {
     fun equalityAndHashesTest() {
 
         val firstTrack = Track(
-            emptyList<String>(),
+            emptyList(),
             "Schoolboy Q & Tyler, The Creator",
             "3:54",
             true,
@@ -20,7 +20,7 @@ class UtilitiesTests {
         )
 
         val secondTrack = Track(
-            emptyList<String>(),
+            emptyList(),
             "Schoolboy Q",
             "3:54",
             false,
@@ -31,7 +31,7 @@ class UtilitiesTests {
 
 
         val thirdTrack = Track(
-            emptyList<String>(),
+            emptyList(),
             "Schoolboy Q",
             "3:54",
             true,
@@ -42,7 +42,7 @@ class UtilitiesTests {
 
 
         val fourthTrack = Track(
-            emptyList<String>(),
+            emptyList(),
             "Tyler, The Creator",
             "2:51",
             false,

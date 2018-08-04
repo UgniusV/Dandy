@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
     <color name="transparentWhite">#f5ffffff</color>
     <color name="darkGrey">#7c7c7c</color>
-    <color name="blurOverlayWhite">#41ffffff</color>
     <color name="textPrimary">#333333</color>
     <color name="textSecondary">#777777</color>
-    <color name="semiTransparent">#a6494949</color>
-    <color name="lightPink">#fb006e</color>
-    <color name="purple">#8d4293</color>
-    <color name="dark">#262829</color>
     <color name="lightBlue">#007ae7</color>
     <color name="darkBlue">#0059e7</color>
     <color name="gray">#9E9E9E</color>
