@@ -9,6 +9,7 @@
     <color name="blurOverlayWhite">#41ffffff</color>
     <color name="textPrimary">#333333</color>
     <color name="textSecondary">#777777</color>
+    <color name="semiTransparent">#a6494949</color>
     <color name="lightPink">#fb006e</color>
     <color name="purple">#8d4293</color>
     <color name="dark">#262829</color>

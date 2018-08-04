@@ -7,11 +7,11 @@ import com.dandy.ugnius.dandy.login.interfaces.LoginView
 import com.dandy.ugnius.dandy.global.repositories.Repository
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Function3
 import io.reactivex.rxkotlin.subscribeBy
 import java.util.concurrent.TimeUnit.SECONDS
 import io.reactivex.schedulers.Schedulers
-import retrofit2.HttpException
 import javax.inject.Inject
 
 class LoginPresenter @Inject constructor(
@@ -21,14 +21,15 @@ class LoginPresenter @Inject constructor(
     private val repository: Repository
 ) {
 
+    //Due to https://github.com/spotify/android-sdk/issues/408 we have to use a backend
+    //server that is deployed on heroku and we have no control over it. Sometimes we get a Bad Gateway
+    //error and we have to use exponential backoff
     private val retryCondition = { errors: Observable<Throwable> ->
         var delay = 1L
         val maximumAttempts = 3
         var attempts = 0
         errors.flatMap {
-            val isBadGateway = (it as? HttpException)?.code() == 502
-            if (isBadGateway && attempts < maximumAttempts) {
-                println("flow: bad request")
+            if (attempts < maximumAttempts) {
                 attempts += 1
                 delay *= 2
                 Observable.timer(delay, SECONDS)
@@ -41,18 +42,12 @@ class LoginPresenter @Inject constructor(
     fun login(code: String) {
         authenticationClient.getCredentials(code)
             .retryWhen(retryCondition)
-            .map {
-                repository.insertCredentials(it)
-            }
-            .flatMapSingle {
-                getUserLibraryQuery()
-            }
+            .map { repository.insertCredentials(it) }
+            .flatMapSingle { getUserLibraryQuery() }
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onComplete = {
-                    loginView.goToMainFragment()
-                },
-                onError = {
-                    it.message?.let { loginView.showError(it) } }
+                onComplete = { loginView.goToMainFragment() },
+                onError = { it.message?.let { loginView.showError(it) } }
             )
     }
 
@@ -63,14 +58,10 @@ class LoginPresenter @Inject constructor(
 
         fun getSavedAlbumsQuery(): Single<List<Album>> {
             return apiClient.getSavedAlbums()
-                .flatMapIterable {
-                    it
-                }
+                .flatMapIterable { it }
                 .flatMap(
                     { apiClient.getAlbumsTracks(it.id) },
-                    { album, tracks ->
-                        album.also { it.tracks = tracks }
-                    }
+                    { album, tracks -> album.also { it.tracks = tracks } }
                 )
                 .toList()
                 .subscribeOn(Schedulers.io())

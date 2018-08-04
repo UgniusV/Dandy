@@ -1,27 +1,27 @@
 package com.dandy.ugnius.dandy.artist.view.adapters
 
 import android.content.Context
+import android.databinding.DataBindingUtil
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import com.bumptech.glide.Glide
 import com.dandy.ugnius.dandy.R
+import com.dandy.ugnius.dandy.databinding.AlbumEntryBinding
 import com.dandy.ugnius.dandy.getGridItemDimensions
 import com.dandy.ugnius.dandy.global.entities.Album
-import com.dandy.ugnius.dandy.second
 import com.makeramen.roundedimageview.RoundedImageView
-import kotlinx.android.synthetic.main.album_cell_entry.view.*
 
+interface AlbumsAdapterDelegate {
+    fun onAlbumClicked(album: Album)
+}
 class AlbumsAdapter(
     context: Context,
-    private val onAlbumClicked: (Album) -> Unit
+    private val delegate: AlbumsAdapterDelegate
 ) : RecyclerView.Adapter<AlbumsAdapter.ViewHolder>() {
 
     private val dimension = getGridItemDimensions(context)
     private val inflater = LayoutInflater.from(context)
-    private val glide = Glide.with(context)
-    var unmodifiableEntries: List<Album>? = null
+    private var unmodifiableEntries: List<Album>? = null
     private var entries = listOf<Album>()
 
     fun setAlbums(entries: List<Album>) {
@@ -37,26 +37,29 @@ class AlbumsAdapter(
         notifyDataSetChanged()
     }
 
-    inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
+    fun filter(query: CharSequence) {
+        val filteredEntries = unmodifiableEntries?.filter { it.name.contains(query, true) }
+        filteredEntries?.let { setAlbums(it) }
+    }
+
+    inner class ViewHolder(private val binding: AlbumEntryBinding) : RecyclerView.ViewHolder(binding.root) {
+        val view = binding.root
         init {
             view.layoutParams.width = dimension
             view.findViewById<RoundedImageView>(R.id.artwork).layoutParams.height = dimension
         }
+        fun bind(album: Album) {
+            binding.album = album
+            binding.delegate = delegate
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(inflater.inflate(R.layout.album_cell_entry, parent, false))
+        val binding = DataBindingUtil.inflate<AlbumEntryBinding>(inflater, R.layout.album_entry, parent, false)
+        return ViewHolder(binding)
     }
 
     override fun getItemCount() = entries.size
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val entry = entries[position]
-        with(holder.itemView) {
-            glide.load(entry.images.second()).into(artwork)
-            title.text = entry.name
-            releaseDate.text = entry.releaseDate
-            setOnClickListener { onAlbumClicked(entry) }
-        }
-    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(entries[position])
 }

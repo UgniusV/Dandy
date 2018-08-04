@@ -5,11 +5,9 @@ import android.graphics.Color.RED
 import android.util.AttributeSet
 import android.graphics.Color.WHITE
 import android.os.Handler
-import android.view.View
 import android.widget.LinearLayout
 import com.dandy.ugnius.dandy.R
-import com.github.florent37.viewanimator.AnimationBuilder
-import com.github.florent37.viewanimator.ViewAnimator
+import com.dandy.ugnius.dandy.fade
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.loading_animation.view.*
@@ -69,26 +67,4 @@ class LoadingView constructor(context: Context, attrs: AttributeSet?) : LinearLa
         disposable?.dispose()
     }
 
-    private fun fade(
-        vararg views: View,
-        values: FloatArray,
-        duration: Long = 250,
-        delay: Long = 0,
-        onStart: () -> Unit = {},
-        onStop: () -> Unit = {}
-    ) {
-        var animationBuilder: AnimationBuilder? = null
-        views.forEachIndexed { index, view ->
-            if (index == 0) {
-                animationBuilder = ViewAnimator.animate(view).alpha(*values)
-            } else {
-                animationBuilder?.andAnimate(view)?.alpha(*values)
-            }
-        }
-        animationBuilder?.duration(duration)
-            ?.onStart(onStart)
-            ?.onStop(onStop)
-            ?.startDelay(delay)
-            ?.start()
-    }
 }
