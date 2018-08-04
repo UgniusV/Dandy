@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white">
-
 
     <LinearLayout
         android:id="@+id/container"
@@ -43,6 +41,7 @@
             android:layout_marginEnd="16dp"
             android:ellipsize="marquee"
             android:focusable="true"
+            android:text="dsadsdasdsa"
             android:focusableInTouchMode="true"
             android:fontFamily="sans-serif-medium"
             android:marqueeRepeatLimit="marquee_forever"
@@ -76,19 +75,23 @@
 
     <ImageView
         android:id="@+id/playOrPause"
-        android:layout_width="65dp"
-        android:layout_height="65dp"
-        android:layout_marginTop="40dp"
+        android:layout_width="60dp"
+        android:padding="5dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:src="@drawable/pause"
+        app:layout_constraintBottom_toTopOf="@+id/replay"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/container" />
+        app:layout_constraintTop_toBottomOf="@+id/container" />
 
 
     <ImageView
         android:id="@+id/previous"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:padding="5dp"
         android:layout_marginEnd="52dp"
         android:src="@drawable/ic_previous"
         app:layout_constraintBottom_toBottomOf="@+id/playOrPause"
@@ -99,6 +102,7 @@
         android:id="@+id/next"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:padding="5dp"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginStart="52dp"
@@ -109,8 +113,9 @@
 
     <ImageView
         android:id="@+id/replay"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="35dp"
+        android:padding="4dp"
+        android:layout_height="35dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
         android:layout_marginStart="16dp"
@@ -121,8 +126,9 @@
 
     <ImageView
         android:id="@+id/shuffle"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="35dp"
+        android:padding="4dp"
+        android:layout_height="35dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="16dp"

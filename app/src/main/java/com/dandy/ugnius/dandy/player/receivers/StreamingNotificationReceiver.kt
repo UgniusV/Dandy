@@ -1,14 +1,13 @@
-package com.dandy.ugnius.dandy.player.receiver
+package com.dandy.ugnius.dandy.player.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.support.v4.app.NotificationCompat
-import com.App
-import com.App.Companion.NOTIFICATION_ACTION_NEXT
-import com.App.Companion.NOTIFICATION_ACTION_PAUSE
-import com.App.Companion.NOTIFICATION_ACTION_PLAY
-import com.App.Companion.NOTIFICATION_ACTION_PREVIOUS
+import com.dandy.ugnius.dandy.global.app.App.Companion.NOTIFICATION_ACTION_NEXT
+import com.dandy.ugnius.dandy.global.app.App.Companion.NOTIFICATION_ACTION_PAUSE
+import com.dandy.ugnius.dandy.global.app.App.Companion.NOTIFICATION_ACTION_PLAY
+import com.dandy.ugnius.dandy.global.app.App.Companion.NOTIFICATION_ACTION_PREVIOUS
 import com.spotify.sdk.android.player.SpotifyPlayer
 import javax.inject.Inject
 
@@ -16,6 +15,7 @@ import javax.inject.Inject
  * A broadcast received used to react to music playback notification actions
  */
 
+//this will be used later
 class StreamingNotificationReceiver : BroadcastReceiver() {
 
     @Inject lateinit var player: SpotifyPlayer
@@ -31,10 +31,3 @@ class StreamingNotificationReceiver : BroadcastReceiver() {
         }
     }
 }
-
-/*
-notificationBuilder.setLargeIcon(resource)
-                                        .setContentTitle(it.name)
-                                        .setContentText(it.artists)
-                                    NotificationManagerCompat.from(context).notify(1, notificationBuilder.build())
- */

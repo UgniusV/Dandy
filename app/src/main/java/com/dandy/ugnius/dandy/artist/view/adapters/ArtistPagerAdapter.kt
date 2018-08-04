@@ -7,15 +7,15 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.dandy.ugnius.dandy.ARTIST_PAGER_ENTRIES_COUNT
+import com.dandy.ugnius.dandy.utilities.ARTIST_PAGER_ENTRIES_COUNT
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.artist.view.decorations.ItemOffsetDecoration
 
 class ArtistPagerAdapter(
     private val context: Context,
-    tracksAdapterDelegate: TracksAdapterDelegate,
-    albumsAdapterDelegate: AlbumsAdapterDelegate,
-    artistsAdapterDelegate: ArtistsAdapterDelegate
+    tracksAdapterDelegate: TracksAdapterDelegate?,
+    albumsAdapterDelegate: AlbumsAdapterDelegate?,
+    artistsAdapterDelegate: ArtistsAdapterDelegate?
 ) : PagerAdapter() {
 
     private val inflater = LayoutInflater.from(context)

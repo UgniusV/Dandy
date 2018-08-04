@@ -7,7 +7,7 @@ import android.graphics.Color.WHITE
 import android.os.Handler
 import android.widget.LinearLayout
 import com.dandy.ugnius.dandy.R
-import com.dandy.ugnius.dandy.fade
+import com.dandy.ugnius.dandy.utilities.fade
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.loading_animation.view.*

@@ -10,6 +10,8 @@
     <string name="singles">Singles</string>
     <string name="options">Options</string>
     <string name="songs">Songs</string>
+    <string name="songs_for_you">Songs for you</string>
+    <string name="artists_for_you">Artists for you</string>
     <string name="similar">Similar</string>
     <string name="log_in">Log in</string>
     <string name="app_description">Dandy is a non comercial Spotify client with some adjustments. In order to use it you must have a premium Spotify account. Every change you make on Dandy affects your Spotify account.</string>

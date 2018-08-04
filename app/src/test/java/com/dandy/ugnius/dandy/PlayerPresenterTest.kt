@@ -2,10 +2,13 @@ package com.dandy.ugnius.dandy
 
 import android.os.Bundle
 import com.dandy.ugnius.dandy.global.entities.Track
-import com.dandy.ugnius.dandy.player.presenter.PlayerPresenter
-import com.dandy.ugnius.dandy.player.view.PlayerView
+import com.dandy.ugnius.dandy.player.presenters.PlayerPresenter
 import org.junit.Test
 import com.dandy.ugnius.dandy.TestData.getPlaybackTestTrackQueue
+import com.dandy.ugnius.dandy.player.view.PlayerView
+import com.dandy.ugnius.dandy.utilities.fourth
+import com.dandy.ugnius.dandy.utilities.second
+import com.dandy.ugnius.dandy.utilities.third
 import org.mockito.Mockito.*
 import org.mockito.Mockito.`when`
 import org.junit.Before

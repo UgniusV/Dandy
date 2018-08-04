@@ -4,9 +4,9 @@ import android.arch.persistence.room.Room
 import android.content.*
 import dagger.Module
 import android.support.v4.app.NotificationCompat
-import com.App.Companion.CHANNEL_ID
+import com.dandy.ugnius.dandy.global.app.App.Companion.CHANNEL_ID
 import com.bumptech.glide.Glide
-import com.dandy.ugnius.dandy.CLIENT_ID
+import com.dandy.ugnius.dandy.utilities.CLIENT_ID
 import com.dandy.ugnius.dandy.global.database.AppDatabase
 import com.dandy.ugnius.dandy.global.repositories.Repository
 import com.spotify.sdk.android.player.Config
@@ -29,7 +29,7 @@ class GeneralModule(private val context: Context) {
 
     @Provides
     fun provideAppDatabase(): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, "appDatabase-name")
+        return Room.databaseBuilder(context, AppDatabase::class.java, "appDatabase")
             .allowMainThreadQueries()
             .build()
     }
@@ -38,11 +38,9 @@ class GeneralModule(private val context: Context) {
     @Provides
     fun provideNotificationBuilder() = NotificationCompat.Builder(context, CHANNEL_ID)
 
-    @Singleton
     @Provides
     fun provideGlide() = Glide.with(context)
 
-    @Singleton
     @Provides
-    fun provideEventBus() = EventBus.getDefault()
+    fun provideEventBus(): EventBus = EventBus.getDefault()
 }

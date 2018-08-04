@@ -1,12 +1,9 @@
-package com.dandy.ugnius.dandy
+package com.dandy.ugnius.dandy.utilities
 
 import android.content.Context
-import android.media.session.MediaSession
-import android.support.v4.app.NotificationCompat
-import com.App.Companion.CHANNEL_ID
-import android.support.v4.app.NotificationCompat.PRIORITY_LOW
 import android.support.v4.content.ContextCompat
 import android.support.v4.graphics.ColorUtils
+import com.dandy.ugnius.dandy.R
 
 object Utilities {
 

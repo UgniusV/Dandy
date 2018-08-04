@@ -3,8 +3,7 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="transparentWhite">#c8ffffff</color>
-    <color name="opaqueWhite">#f5ffffff</color>
+    <color name="transparentWhite">#f5ffffff</color>
     <color name="darkGrey">#7c7c7c</color>
     <color name="blurOverlayWhite">#41ffffff</color>
     <color name="textPrimary">#333333</color>
@@ -17,5 +16,5 @@
     <color name="darkBlue">#0059e7</color>
     <color name="gray">#9E9E9E</color>
     <color name="dirtyWhite">#f2fcfe</color>
-    <color name="dirtyBlue">#48a6d9</color>
+    <color name="dirtyBlue">#48a6d9</color>ß
 </resources>

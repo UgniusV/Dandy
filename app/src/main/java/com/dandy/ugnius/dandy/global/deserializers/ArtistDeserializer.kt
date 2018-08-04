@@ -15,7 +15,7 @@ class ArtistDeserializer : JsonDeserializer<Artist> {
               get("followers").asJsonObject.get("total").asLong,
               getGenres(this),
               get("id").asString,
-              getImages(this),
+              DeserializationHelper.getImages(this),
               get("name").asString,
               get("popularity").asInt,
               null
@@ -29,13 +29,5 @@ class ArtistDeserializer : JsonDeserializer<Artist> {
             genres.add(it.asString)
         }
         return genres.joinToString(" & ")
-    }
-
-    private fun getImages(json: JsonObject): List<String> {
-        val images = arrayListOf<String>()
-        json.get("images").asJsonArray.forEach {
-            images.add(it.asJsonObject.get("url").asString)
-        }
-        return images
     }
 }

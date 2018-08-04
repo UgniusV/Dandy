@@ -28,7 +28,7 @@ class AlbumsDeserializer : JsonDeserializer<List<Album>> {
                 get("album_type").asString,
                 deserializeArtists(this),
                 get("id").asString,
-                getImages(this),
+                DeserializationHelper.getImages(this),
                 get("name").asString,
                 deserializeDate(this),
                 null
@@ -53,11 +53,4 @@ class AlbumsDeserializer : JsonDeserializer<List<Album>> {
         return artists.joinToString(" & ")
     }
 
-    private fun getImages(json: JsonObject): List<String> {
-        val images = arrayListOf<String>()
-        json.get("images").asJsonArray.forEach {
-            images.add(it.asJsonObject.get("url").asString)
-        }
-        return images
-    }
 }

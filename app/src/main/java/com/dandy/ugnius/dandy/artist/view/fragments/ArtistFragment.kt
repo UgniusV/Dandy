@@ -1,4 +1,4 @@
-package com.dandy.ugnius.dandy.artist.view
+package com.dandy.ugnius.dandy.artist.view.fragments
 
 import android.databinding.DataBindingUtil
 import android.graphics.Color.WHITE
@@ -10,30 +10,32 @@ import android.view.View.GONE
 import android.support.v4.app.Fragment
 import android.support.v7.graphics.Palette
 import android.support.v7.widget.*
-import com.dandy.ugnius.dandy.global.entities.Album
 import com.dandy.ugnius.dandy.global.entities.Artist
-import com.dandy.ugnius.dandy.global.entities.Track
-import com.dandy.ugnius.dandy.artist.presenter.ArtistViewModel
+import com.dandy.ugnius.dandy.artist.viewmodels.ArtistViewModel
 import android.view.*
 import com.dandy.ugnius.dandy.*
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.view_artist.*
-import com.dandy.ugnius.dandy.main.MainActivity
+import com.dandy.ugnius.dandy.main.view.MainActivity
 import android.widget.ImageView
 import com.dandy.ugnius.dandy.artist.view.adapters.*
 import com.dandy.ugnius.dandy.databinding.ViewArtistBinding
 import com.dandy.ugnius.dandy.di.components.DaggerViewModelComponent
 import com.dandy.ugnius.dandy.di.modules.GeneralModule
 import com.dandy.ugnius.dandy.global.factories.ViewModelFactory
+import com.dandy.ugnius.dandy.utilities.*
 import com.jakewharton.rxbinding2.support.v4.view.RxViewPager
 import com.jakewharton.rxbinding2.support.v7.widget.RxSearchView
 import io.reactivex.disposables.CompositeDisposable
 import javax.inject.Inject
 
-class ArtistFragment : Fragment(), TracksAdapterDelegate, AlbumsAdapterDelegate, ArtistsAdapterDelegate {
+class ArtistFragment : Fragment() {
 
-    private val pagerAdapter by lazy { ArtistPagerAdapter(context!!, this, this, this) }
     @Inject lateinit var viewModelFactory: ViewModelFactory
+    var tracksAdapterDelegate: TracksAdapterDelegate? = null
+    var albumsAdapterDelegate: AlbumsAdapterDelegate? = null
+    var artistsAdapterDelegate: ArtistsAdapterDelegate? = null
+    private val pagerAdapter by lazy { ArtistPagerAdapter(context!!, tracksAdapterDelegate, albumsAdapterDelegate, artistsAdapterDelegate) }
     private var compositeDisposable = CompositeDisposable()
     private var viewModel: ArtistViewModel? = null
     private var binding: ViewArtistBinding? = null
@@ -59,27 +61,14 @@ class ArtistFragment : Fragment(), TracksAdapterDelegate, AlbumsAdapterDelegate,
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         arguments?.getString("artistId")?.let { viewModel?.query(it, "ES", "album,single") }
-        setHasOptionsMenu(true)
-        (activity as MainActivity).setSupportActionBar(toolbar)
-        artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
-        artistPager.adapter = pagerAdapter
-        artistPagerTabs.setupWithViewPager(artistPager)
-        collapsingAppBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, offset ->
-            if (offset == -appBarLayout.totalScrollRange) {
-                searchItem?.isVisible = true
-                searchView?.visibility = VISIBLE
-                (activity as MainActivity).supportActionBar?.setDisplayHomeAsUpEnabled(false)
-            } else if (offset == 0) {
-                searchItem?.isVisible = false
-                searchView?.visibility = GONE
-                toolbar.collapseActionView()
-                (activity as? MainActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-            }
-        })
+        setupToolbar()
+        setupViewPager()
+        setupCollapsingLayout()
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?) {
         super.onPrepareOptionsMenu(menu)
+
         val pagerDisposable = RxViewPager.pageSelections(artistPager)
             .map { pagerAdapter.reset(it) }
             .subscribe { searchView?.setQuery("", false) }
@@ -90,46 +79,6 @@ class ArtistFragment : Fragment(), TracksAdapterDelegate, AlbumsAdapterDelegate,
 
         compositeDisposable.addAll(pagerDisposable, searchViewDisposable)
 
-    }
-
-    private fun setArtistInfo(artist: Artist) {
-        binding?.artist = artist
-        background?.loadBitmap(artist.images.first(), context!!) {
-            it.extractSwatch().subscribeBy(
-                onSuccess = { setAccentColor(it) },
-                onComplete = { artistPager.background = ColorDrawable(WHITE) }
-            )
-        }
-    }
-
-    override fun onStop() {
-        super.onStop()
-    }
-
-    //todo move this to activity edelegate
-    override fun onTrackClicked(currentTrack: Track, allTracks: List<Track>) {
-        (context as? MainActivity)?.onArtistTrackClicked(currentTrack, allTracks)
-    }
-
-    override fun onAlbumClicked(album: Album) {
-        (context as? MainActivity)?.onAlbumClicked(album)
-    }
-
-    private fun setAccentColor(swatch: Palette.Swatch) {
-        artistPager.shade(color = Utilities.whiteBlend(context!!, swatch.rgb, 0.3F), ratio = 0.2F)
-        val adjustedColor = Drawables.lightenOrDarken(swatch.rgb, 0.4)
-        artistPagerTabs?.let {
-            it.setSelectedTabIndicatorColor(adjustedColor)
-            it.setTabTextColors(adjustedColor, adjustedColor)
-        }
-        collapsingLayout?.let {
-            it.setContentScrimColor(swatch.rgb)
-            it.setStatusBarScrimColor(swatch.rgb)
-        }
-    }
-
-    override fun onArtistClicked(artist: Artist) {
-        (context as MainActivity).onArtistClicked(artist.id)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater?) {
@@ -144,7 +93,7 @@ class ArtistFragment : Fragment(), TracksAdapterDelegate, AlbumsAdapterDelegate,
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return when(item?.itemId) {
+        return when (item?.itemId) {
             R.id.favorite -> true
             R.id.search -> super.onOptionsItemSelected(item)
             else -> {
@@ -157,6 +106,58 @@ class ArtistFragment : Fragment(), TracksAdapterDelegate, AlbumsAdapterDelegate,
     override fun onDestroyView() {
         super.onDestroyView()
         compositeDisposable.clear()
+    }
+
+    private fun setupViewPager() {
+        artistPager.offscreenPageLimit = ARTIST_PAGER_ENTRIES_COUNT
+        artistPager.adapter = pagerAdapter
+        artistPagerTabs.setupWithViewPager(artistPager)
+    }
+
+    private fun setupToolbar() {
+        setHasOptionsMenu(true)
+        (activity as MainActivity).setSupportActionBar(toolbar)
+    }
+
+    private fun setupCollapsingLayout() {
+
+        fun toggleSearchView(toggle: Boolean) {
+            searchItem?.isVisible = toggle
+            searchView?.visibility = if (toggle) VISIBLE else GONE
+            (activity as MainActivity).supportActionBar?.setDisplayHomeAsUpEnabled(!toggle)
+        }
+
+        collapsingAppBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, offset ->
+            val isCollapsed = offset == -appBarLayout.totalScrollRange
+            if (isCollapsed) {
+                toggleSearchView(true)
+            } else if (offset == 0) {
+                toggleSearchView(false)
+            }
+        })
+    }
+
+    private fun setArtistInfo(artist: Artist) {
+        binding?.artist = artist
+        background?.loadBitmap(artist.images.first(), context!!) {
+            it.extractSwatch().subscribeBy(
+                onSuccess = { setAccentColor(it) },
+                onComplete = { artistPager.background = ColorDrawable(WHITE) }
+            )
+        }
+    }
+
+    private fun setAccentColor(swatch: Palette.Swatch) {
+        artistPager?.shade(color = Utilities.whiteBlend(context!!, swatch.rgb, 0.3F), ratio = 0.2F)
+        val adjustedColor = adjustColorLightness(color = swatch.rgb, lightness = 0.3F)
+        artistPagerTabs?.let {
+            it.setSelectedTabIndicatorColor(adjustedColor)
+            it.setTabTextColors(adjustedColor, adjustedColor)
+        }
+        collapsingLayout?.let {
+            it.setContentScrimColor(swatch.rgb)
+            it.setStatusBarScrimColor(swatch.rgb)
+        }
     }
 
 }

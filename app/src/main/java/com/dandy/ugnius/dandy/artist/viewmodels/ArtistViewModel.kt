@@ -1,4 +1,4 @@
-package com.dandy.ugnius.dandy.artist.presenter
+package com.dandy.ugnius.dandy.artist.viewmodels
 
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
@@ -23,6 +23,7 @@ class ArtistViewModel(private val apiClient: APIClient) : ViewModel() {
     private val formatter = SimpleDateFormat("yyyy-mm-dd", Locale.getDefault())
     private var topTracksObservable: Observable<List<Track>>? = null
 
+    //todo return immutable live data to the view
     var artist = MutableLiveData<Artist>()
     var topTracks = MutableLiveData<List<Track>>()
     var tracks = MutableLiveData<List<Track>>()
@@ -47,9 +48,7 @@ class ArtistViewModel(private val apiClient: APIClient) : ViewModel() {
     private fun queryArtist(artistId: String) {
         val disposable = apiClient.getArtist(artistId)
             .subscribeBy(
-                onSuccess = {
-                    artist.postValue(it)
-                },
+                onSuccess = { artist.postValue(it) },
                 onError = { it.message?.let { error.postValue(Error(it)) } }
             )
         compositeDisposable.add(disposable)
@@ -58,9 +57,7 @@ class ArtistViewModel(private val apiClient: APIClient) : ViewModel() {
     private fun queryTopTracks(artistId: String, market: String) {
         val disposable = getTopTracksObservable(artistId, market)
             .subscribeBy(
-                onNext = {
-                    topTracks.postValue(it)
-                },
+                onNext = { topTracks.postValue(it) },
                 onError = { it.message?.let { error.postValue(Error(it)) } }
             )
         compositeDisposable.add(disposable)
@@ -80,9 +77,7 @@ class ArtistViewModel(private val apiClient: APIClient) : ViewModel() {
             .flatMapIterable { it }
             .flatMap(
                 { queryArtistTopThreeTracks(it.id, market) },
-                { artist, tracks ->
-                    artist.also { it.tracks = tracks }
-                }
+                { artist, tracks -> artist.also { it.tracks = tracks } }
             )
             .toSortedList { lhs: Artist, rhs: Artist ->
                 when {
@@ -93,12 +88,8 @@ class ArtistViewModel(private val apiClient: APIClient) : ViewModel() {
             }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onSuccess = {
-                    similarArtists.postValue(it)
-                },
-                onError = {
-                    it.message?.let { error.postValue(Error(it)) }
-                }
+                onSuccess = { similarArtists.postValue(it) },
+                onError = { it.message?.let { error.postValue(Error(it)) } }
             )
         compositeDisposable.add(disposable)
     }

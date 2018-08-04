@@ -17,8 +17,8 @@ interface ArtistsAdapterDelegate {
 
 class ArtistsAdapter(
     context: Context,
-    private val tracksAdapterDelegate: TracksAdapterDelegate,
-    private val delegate: ArtistsAdapterDelegate
+    private val tracksAdapterDelegate: TracksAdapterDelegate?,
+    private val delegate: ArtistsAdapterDelegate?
 ) : RecyclerView.Adapter<ArtistsAdapter.ViewHolder>() {
 
     private val inflater = LayoutInflater.from(context)

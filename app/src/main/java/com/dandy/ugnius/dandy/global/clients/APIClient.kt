@@ -13,7 +13,10 @@ interface APIClient {
     fun getArtist(@Path("artistId") artistId: String): Single<Artist>
 
     @GET("v1/artists/{artistId}/top-tracks")
-    fun getArtistTopTracks(@Path("artistId") artistId: String, @Query("country") country: String): Observable<List<Track>>
+    fun getArtistTopTracks(
+        @Path("artistId") artistId: String,
+        @Query("country") country: String
+    ): Observable<List<Track>>
 
     @GET("v1/artists/{artistId}/albums")
     fun getArtistAlbums(
@@ -35,5 +38,11 @@ interface APIClient {
 
     @GET("v1/me/following")
     fun getFollowingArtists(@Query("type") type: String): Single<List<Artist>>
+
+    @GET("v1/me/top/artists")
+    fun getMyTopArtists(): Single<List<Artist>>
+
+    @GET("v1/me/top/tracks")
+    fun getMyTopTracks(): Single<List<Track>>
 
 }

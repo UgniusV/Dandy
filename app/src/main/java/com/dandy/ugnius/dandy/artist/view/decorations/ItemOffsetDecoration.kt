@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Rect
 import android.support.v7.widget.RecyclerView
 import android.view.View
-import com.dandy.ugnius.dandy.dpToPx
+import com.dandy.ugnius.dandy.utilities.dpToPx
 
 class ItemOffsetDecoration(context: Context, offset: Int) : RecyclerView.ItemDecoration() {
 

@@ -36,9 +36,7 @@ class Track(
         parcel.writeString(uri)
     }
 
-    override fun describeContents(): Int {
-        return 0
-    }
+    override fun describeContents() = 0
 
     companion object CREATOR : Parcelable.Creator<Track> {
         override fun createFromParcel(parcel: Parcel): Track {

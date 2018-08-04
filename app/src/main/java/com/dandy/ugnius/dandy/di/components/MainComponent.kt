@@ -1,10 +1,9 @@
 package com.dandy.ugnius.dandy.di.components
 
 import com.dandy.ugnius.dandy.di.modules.GeneralModule
-import com.dandy.ugnius.dandy.main.MainActivity
-import com.dandy.ugnius.dandy.player.receiver.StreamingNotificationReceiver
+import com.dandy.ugnius.dandy.main.view.MainActivity
+import com.dandy.ugnius.dandy.player.receivers.StreamingNotificationReceiver
 import com.dandy.ugnius.dandy.player.receivers.ConnectionStateReceiver
-import com.dandy.ugnius.dandy.player.view.PlayerFragment
 import dagger.Component
 import javax.inject.Singleton
 
@@ -12,7 +11,6 @@ import javax.inject.Singleton
 @Singleton
 @Component(modules = [GeneralModule::class])
 interface MainComponent {
-    fun inject(playerFragment: PlayerFragment)
     fun inject(streamingNotificationReceiver: StreamingNotificationReceiver)
     fun inject(connectionStateReceiver: ConnectionStateReceiver)
     fun inject(mainActivity: MainActivity)

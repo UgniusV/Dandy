@@ -11,6 +11,7 @@ class Repository @Inject constructor(private val database: AppDatabase) {
 
     fun insertCredentials(credentials: Credentials) = database.credentialsDao().insertCredentials(credentials)
 
+    //will be used later
     fun updateCredentials(credentials: Credentials) = database.credentialsDao().updateCredentials(credentials)
 
     fun getCredentials() = database.credentialsDao().getCredentials()
@@ -19,6 +20,7 @@ class Repository @Inject constructor(private val database: AppDatabase) {
 
     fun getAlbums() = database.albumsDao().getAllAlbums()
 
+    //will be used later
     fun getArtists() = database.artistsDao().getAllArtists()
 
     fun insertTracks(tracks: List<Track>) = database.tracksDao().insertTracks(tracks)
@@ -27,5 +29,6 @@ class Repository @Inject constructor(private val database: AppDatabase) {
 
     fun insertArtists(artists: List<Artist>) = database.artistsDao().insertArtists(artists)
 
+    //will be used later
     fun deleteTrack(track: Track) = database.tracksDao().deleteATrack(track)
 }

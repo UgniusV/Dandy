@@ -2,7 +2,7 @@ package com.dandy.ugnius.dandy
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import com.dandy.ugnius.dandy.TestData.getTestAlbums
-import com.dandy.ugnius.dandy.artist.presenter.ArtistViewModel
+import com.dandy.ugnius.dandy.artist.viewmodels.ArtistViewModel
 import com.dandy.ugnius.dandy.global.clients.APIClient
 import com.dandy.ugnius.dandy.global.entities.Album
 import com.dandy.ugnius.dandy.global.entities.Artist
@@ -12,6 +12,7 @@ import io.reactivex.Observable
 import com.dandy.ugnius.dandy.TestData.getTestArtist
 import com.dandy.ugnius.dandy.TestData.getTestArtists
 import com.dandy.ugnius.dandy.TestData.getTestTracks
+import com.dandy.ugnius.dandy.utilities.second
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import io.reactivex.Scheduler

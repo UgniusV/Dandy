@@ -13,6 +13,7 @@ interface AuthenticationClient {
     @POST("api/token")
     fun getCredentials(@Field("code") code: String): Observable<Credentials>
 
+    //will be used later
     @FormUrlEncoded
     @POST("api/refresh_token")
     fun refreshToken(@Field("refresh_token") refreshToken: String): Single<Credentials>

@@ -1,14 +1,6 @@
-package com.dandy.ugnius.dandy
+package com.dandy.ugnius.dandy.utilities
 
-import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.RippleDrawable
-import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.shapes.RoundRectShape
-
-import java.util.Arrays
 
 object Drawables {
 

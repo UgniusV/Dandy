@@ -1,4 +1,4 @@
-package com.dandy.ugnius.dandy
+package com.dandy.ugnius.dandy.utilities
 
 import android.arch.lifecycle.*
 import android.arch.lifecycle.Observer

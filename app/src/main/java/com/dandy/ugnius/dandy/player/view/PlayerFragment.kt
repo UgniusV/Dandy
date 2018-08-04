@@ -5,19 +5,19 @@ import android.graphics.Color.WHITE
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.app.NotificationCompat
 import android.support.v4.graphics.drawable.DrawableCompat
-import com.App
 import android.support.v4.view.ViewCompat
 import android.support.v7.graphics.Palette
 import android.view.*
 import android.widget.SeekBar
-import com.dandy.ugnius.dandy.*
 import com.dandy.ugnius.dandy.R
+import com.dandy.ugnius.dandy.di.components.DaggerPlayerComponent
+import com.dandy.ugnius.dandy.di.modules.GeneralModule
+import com.dandy.ugnius.dandy.di.modules.PlayerModule
 import com.dandy.ugnius.dandy.global.entities.Track
-import com.dandy.ugnius.dandy.main.MainActivity
-import com.dandy.ugnius.dandy.player.presenter.PlayerPresenter
-import com.spotify.sdk.android.player.*
+import com.dandy.ugnius.dandy.main.view.MainActivity
+import com.dandy.ugnius.dandy.player.presenters.PlayerPresenter
+import com.dandy.ugnius.dandy.utilities.*
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.playback_controls.*
 import kotlinx.android.synthetic.main.view_player.*
@@ -26,11 +26,19 @@ import java.util.*
 import javax.inject.Inject
 
 
+interface PlayerView {
+    fun update(track: Track)
+    fun updateProgress()
+    fun hasTrackEnded() : Boolean
+    fun shouldRewind(): Boolean
+    fun togglePlayButton(isPaused: Boolean)
+    fun toggleShuffle(isShuffle: Boolean)
+    fun toggleReplay(isReplay: Boolean)
+}
 class PlayerFragment : Fragment(), PlayerView {
 
-    @Inject lateinit var player: SpotifyPlayer
-    @Inject lateinit var notificationBuilder: NotificationCompat.Builder
-    private val playerPresenter by lazy { PlayerPresenter(this).also { it.player = player } }
+//    @Inject lateinit var notificationBuilder: NotificationCompat.Builder
+    @Inject lateinit var playerPresenter: PlayerPresenter
     private val formatter = SimpleDateFormat("mm:ss", Locale.getDefault())
     private var isTracking = false
 
@@ -62,13 +70,17 @@ class PlayerFragment : Fragment(), PlayerView {
     override fun hasTrackEnded() = seekbar?.progress == seekbar?.max
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        DaggerPlayerComponent.builder()
+            .generalModule(GeneralModule(context!!))
+            .playerModule(PlayerModule(this))
+            .build()
+            .inject(this)
         return inflater.inflate(R.layout.view_player, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ViewCompat.requestApplyInsets(root)
-//        (activity?.applicationContext as App).mainComponent?.inject(this)
         savedInstanceState?.let { playerPresenter.setState(it) }
         initializeViews()
         arguments?.let { playerPresenter.setState(it) }
@@ -76,24 +88,25 @@ class PlayerFragment : Fragment(), PlayerView {
 
     }
 
+
     override fun togglePlayButton(isPaused: Boolean) {
         if (isPaused) {
-            playOrPause.setImageResource(R.drawable.play)
+            playOrPause?.setImageResource(R.drawable.play)
         } else {
-            playOrPause.setImageResource(R.drawable.pause)
+            playOrPause?.setImageResource(R.drawable.pause)
         }
     }
 
     private fun initializeViews() {
-        trackTitle.isSelected = true
-        trackArtist.isSelected = true
-        seekbar.setPadding(0, 0, 0, 0)
-        previous.setOnClickListener { playerPresenter.skipToPrevious() }
-        replay.setOnClickListener { playerPresenter.toggleReplay() }
-        next.setOnClickListener { playerPresenter.skipToNext() }
-        playOrPause.setOnClickListener { playerPresenter.togglePlayback() }
-        shuffle.setOnClickListener { playerPresenter.toggleShuffle() }
-        seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        trackTitle?.isSelected = true
+        trackArtist?.isSelected = true
+        seekbar?.setPadding(0, 0, 0, 0)
+        previous?.setOnClickListener { playerPresenter.skipToPrevious() }
+        replay?.setOnClickListener { playerPresenter.toggleReplay() }
+        next?.setOnClickListener { playerPresenter.skipToNext() }
+        playOrPause?.setOnClickListener { playerPresenter.togglePlayback() }
+        shuffle?.setOnClickListener { playerPresenter.toggleShuffle() }
+        seekbar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
 
             }
@@ -114,6 +127,7 @@ class PlayerFragment : Fragment(), PlayerView {
         setHasOptionsMenu(true)
         with(activity as MainActivity) {
             setSupportActionBar(toolbar)
+            toolbar.title = null
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             supportActionBar?.setHomeAsUpIndicator(R.drawable.expand)
         }
@@ -143,9 +157,9 @@ class PlayerFragment : Fragment(), PlayerView {
                     )
             }
         }
-        seekbar.progress = 0
-        duration.text = track.duration
-        seekbar.max = Utilities.durationToSeconds(track.duration)
+        seekbar?.progress = 0
+        duration?.text = track.duration
+        seekbar?.max = Utilities.durationToSeconds(track.duration)
     }
 
     private fun setAccentColor(swatch: Palette.Swatch) {
@@ -153,9 +167,9 @@ class PlayerFragment : Fragment(), PlayerView {
         val adjustedColor = Drawables.lightenOrDarken(swatch.rgb, 0.3)
         DrawableCompat.setTint(replay.drawable, adjustedColor)
         DrawableCompat.setTint(shuffle.drawable, adjustedColor)
-        seekbar.progressTintList = ColorStateList.valueOf(adjustedColor)
-        seekbar.progressBackgroundTintList = ColorStateList.valueOf(blendedColor)
-        seekbar.thumbTintList = ColorStateList.valueOf(adjustedColor)
+        seekbar?.progressTintList = ColorStateList.valueOf(adjustedColor)
+        seekbar?.progressBackgroundTintList = ColorStateList.valueOf(blendedColor)
+        seekbar?.thumbTintList = ColorStateList.valueOf(adjustedColor)
         playbackControls.shade(color = blendedColor, ratio = 0.5F)
 
     }

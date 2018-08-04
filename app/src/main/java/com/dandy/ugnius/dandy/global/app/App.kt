@@ -1,4 +1,4 @@
-package com
+package com.dandy.ugnius.dandy.global.app
 
 import android.app.Application
 import android.app.NotificationChannel
@@ -8,7 +8,7 @@ import android.app.Notification.VISIBILITY_PUBLIC
 import android.content.IntentFilter
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.O
-import com.dandy.ugnius.dandy.player.receiver.StreamingNotificationReceiver
+import com.dandy.ugnius.dandy.player.receivers.StreamingNotificationReceiver
 import android.net.ConnectivityManager.CONNECTIVITY_ACTION
 import com.dandy.ugnius.dandy.player.receivers.ConnectionStateReceiver
 

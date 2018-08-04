@@ -18,9 +18,6 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
-import okhttp3.logging.HttpLoggingInterceptor
-
-
 
 @Module(includes = [GeneralModule::class])
 class NetworkModule {
@@ -57,7 +54,7 @@ class NetworkModule {
     fun provideRetrofit(
         gsonConverterFactory: GsonConverterFactory,
         okHttpClient: OkHttpClient
-    ) = with(Retrofit.Builder()) {
+    ): Retrofit = with(Retrofit.Builder()) {
         baseUrl("https://api.spotify.com")
         addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
         addConverterFactory(gsonConverterFactory)
@@ -66,21 +63,19 @@ class NetworkModule {
     }
 
     @Provides
-    fun provideClient(retrofit: Retrofit) = retrofit.create(APIClient::class.java)
-
-    @Provides
     @Named("authentication")
     fun provideAuthRetrofit(@Named("authentication") gsonConverterFactory: GsonConverterFactory): Retrofit {
-        val logging = HttpLoggingInterceptor()
-        logging.level = HttpLoggingInterceptor.Level.BODY
         return with(Retrofit.Builder()) {
             baseUrl("https://dry-mesa-35155.herokuapp.com/")
             addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
             addConverterFactory(gsonConverterFactory)
-            client(OkHttpClient().newBuilder().addInterceptor(logging).build())
+            client(OkHttpClient().newBuilder().build())
             build()
         }
     }
+
+    @Provides
+    fun provideClient(retrofit: Retrofit): APIClient = retrofit.create(APIClient::class.java)
 
     @Provides
     fun provideAuthClient(@Named("authentication") retrofit: Retrofit): AuthenticationClient {

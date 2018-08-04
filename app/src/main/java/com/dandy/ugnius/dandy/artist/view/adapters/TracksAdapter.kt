@@ -15,7 +15,7 @@ interface TracksAdapterDelegate {
 
 class TracksAdapter(
     context: Context,
-    private val delegate: TracksAdapterDelegate
+    private val delegate: TracksAdapterDelegate?
 ) : RecyclerView.Adapter<TracksAdapter.ViewHolder>() {
 
     private val inflater = LayoutInflater.from(context)

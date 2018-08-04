@@ -3,8 +3,8 @@ package com.dandy.ugnius.dandy.login.presenters
 import com.dandy.ugnius.dandy.global.clients.APIClient
 import com.dandy.ugnius.dandy.global.entities.Album
 import com.dandy.ugnius.dandy.login.model.clients.AuthenticationClient
-import com.dandy.ugnius.dandy.login.interfaces.LoginView
 import com.dandy.ugnius.dandy.global.repositories.Repository
+import com.dandy.ugnius.dandy.login.views.fragments.LoginView
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers

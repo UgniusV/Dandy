@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.dandy.ugnius.dandy.R
 import com.dandy.ugnius.dandy.databinding.AlbumEntryBinding
-import com.dandy.ugnius.dandy.getGridItemDimensions
+import com.dandy.ugnius.dandy.utilities.getGridItemDimensions
 import com.dandy.ugnius.dandy.global.entities.Album
 import com.makeramen.roundedimageview.RoundedImageView
 
@@ -16,7 +16,7 @@ interface AlbumsAdapterDelegate {
 }
 class AlbumsAdapter(
     context: Context,
-    private val delegate: AlbumsAdapterDelegate
+    private val delegate: AlbumsAdapterDelegate?
 ) : RecyclerView.Adapter<AlbumsAdapter.ViewHolder>() {
 
     private val dimension = getGridItemDimensions(context)

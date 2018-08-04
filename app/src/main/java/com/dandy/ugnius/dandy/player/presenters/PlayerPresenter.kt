@@ -1,18 +1,18 @@
-package com.dandy.ugnius.dandy.player.presenter
+package com.dandy.ugnius.dandy.player.presenters
 
 import android.os.Bundle
 import android.os.Handler
-import com.dandy.ugnius.dandy.random
+import com.dandy.ugnius.dandy.utilities.random
 import com.dandy.ugnius.dandy.global.entities.Track
 import com.dandy.ugnius.dandy.player.view.PlayerView
 import com.spotify.sdk.android.player.*
 import java.util.*
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashSet
 
-class PlayerPresenter(private val playerView: PlayerView) {
+class PlayerPresenter @Inject constructor(private val playerView: PlayerView, private val player: SpotifyPlayer) {
 
-    var player: SpotifyPlayer? = null
     private lateinit var tracks: LinkedList<Track>
     private lateinit var currentTrack: Track
     private var queue = LinkedHashSet<Track>()
@@ -101,8 +101,8 @@ class PlayerPresenter(private val playerView: PlayerView) {
                     resetPlaybackQueue()
                 }
             }
-            player?.pause(null)
-            player?.playUri(null, it.uri, 0, 0)
+            player.pause(null)
+            player.playUri(null, it.uri, 0, 0)
             handler.removeCallbacks(runnable)
             handler.postDelayed(runnable, 300)
             playerView.update(currentTrack)
@@ -112,10 +112,10 @@ class PlayerPresenter(private val playerView: PlayerView) {
     }
 
     fun seekToPosition(position: Int) {
-        player?.pause(null)
-        player?.seekToPosition(null, position * 1000)
+        player.pause(null)
+        player.seekToPosition(null, position * 1000)
         Handler().postDelayed({
-            player?.resume(null)
+            player.resume(null)
             isPaused = false
             playerView.togglePlayButton(isPaused)
         }, 300)
@@ -123,10 +123,10 @@ class PlayerPresenter(private val playerView: PlayerView) {
 
     fun togglePlayback() {
         if (isPaused) {
-            player?.resume(null)
+            player.resume(null)
             isPaused = false
         } else {
-            player?.pause(null)
+            player.pause(null)
             isPaused = true
         }
         playerView.togglePlayButton(isPaused)
