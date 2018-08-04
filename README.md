@@ -13,7 +13,7 @@ Dandy is a Spotify client with some changes and adjustments. This project was cr
 - More test coverage.
 - Orientation change support.
 - Implement access token refreshing feature.
-- Playback is extremelly buggy. (This will be fixed in near future)
+- Playback is extremelly buggy. (This will be fixed in the near future by using services).
 - Overall refactoring.
 
 ## Artist
