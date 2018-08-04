@@ -1,6 +1,6 @@
 ### Dandy
 
-Dandy is a Spotify client with some changes and adjustments. This project was created in order for me to play around with new libraries, tools, architectures and apply best practises. The app is still in development so it has some flaws and not every window/feature is implemented.
+Dandy is a Spotify client with some changes and adjustments. This project was created in order for me to play around with new libraries, tools, architectures and apply best practises. The app is still in development so it has some flaws and not every window/feature is implemented and only premium spotify users can use it.
 
 ### TODOS
 
