@@ -23,7 +23,7 @@ import org.mockito.junit.MockitoJUnitRunner
 class PlayerPresenterTest {
 
     @get:Rule
-    var exceptions = ExpectedException.none()
+    var exceptions: ExpectedException = ExpectedException.none()
 
     @Mock private lateinit var view: PlayerView
     @Mock private lateinit var bundle: Bundle

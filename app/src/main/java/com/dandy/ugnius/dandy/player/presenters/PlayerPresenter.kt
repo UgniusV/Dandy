@@ -122,12 +122,12 @@ class PlayerPresenter @Inject constructor(private val playerView: PlayerView, pr
     }
 
     fun togglePlayback() {
-        if (isPaused) {
+        isPaused = if (isPaused) {
             player.resume(null)
-            isPaused = false
+            false
         } else {
             player.pause(null)
-            isPaused = true
+            true
         }
         playerView.togglePlayButton(isPaused)
     }
@@ -158,7 +158,7 @@ class PlayerPresenter @Inject constructor(private val playerView: PlayerView, pr
     fun setState(bundle: Bundle) {
         with(bundle) {
             tracks = LinkedList(getParcelableArrayList("tracks"))
-            currentTrack = getParcelable<Track>("currentTrack")
+            currentTrack = getParcelable("currentTrack")
             shuffle = getBoolean("shuffle")
             isPaused = getBoolean("isPaused")
             queue = LinkedHashSet(getParcelableArrayList("queue") ?: emptyList())

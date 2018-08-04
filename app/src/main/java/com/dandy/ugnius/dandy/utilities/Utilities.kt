@@ -31,7 +31,7 @@ object Utilities {
         val units = duration.split(":")
         val minutes = Integer.parseInt(units[0])
         val seconds = Integer.parseInt(units[1])
-        return 60 * minutes + seconds;
+        return 60 * minutes + seconds
     }
 
     fun whiteBlend(context: Context, color: Int, ratio: Float): Int {
