@@ -1,12 +1,12 @@
 ### Dandy
 
-Dandy is a Spotify client with some changes and adjustments. This project was created in order for me to play around with new libraries, tools, architectures and apply best practises. The app is still in development so it has some flaws and not every window/feature is implemented and only premium spotify users can use it.
+Dandy is a Spotify client with some changes and adjustments. This project was created in order for me to play around with new libraries, tools, architectures and apply best practises. The app is still in development so it has some flaws and not every window/feature is implemented and only premium Spotify users can use it.
 
 ### TODOS
 
 - Completely refactor from MVP to MVVM and change unit tests accordingly.
--  Change dagger 2 architecture to achieve better code reusability.
-- Spotify services sometimes sometimes produce HTTP 429 exception so exponential backoff should be implemented.
+-  Change dagger 2 architecture to avoid code duplication.
+- Spotify services sometimes produce HTTP 429 exception so exponential backoff should be implemented.
 - Implement overall error handling.
 -  Because Spotify Android playback SDK is extremely buggy I wrote the logic for playback managing myself and it needs refactoring (PlayerPresenter.kt and PlayerFragment.kt).
 - Package structure needs to be refactored.
@@ -14,8 +14,8 @@ Dandy is a Spotify client with some changes and adjustments. This project was cr
 - Orientation change support.
 - Implement access token refreshing feature.
 - Playback is extremelly buggy. (This will be fixed in the near future by using services).
-- Overall refactoring.
 - Navigation improvements.
+- Overall refactoring.
 
 ## Artist
 ![artist_fragment](https://user-images.githubusercontent.com/18017952/43677376-ab9d3f82-9809-11e8-8c81-3e5d6b2f05b5.png)
