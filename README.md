@@ -15,6 +15,7 @@ Dandy is a Spotify client with some changes and adjustments. This project was cr
 - Implement access token refreshing feature.
 - Playback is extremelly buggy. (This will be fixed in the near future by using services).
 - Overall refactoring.
+- Navigation improvements.
 
 ## Artist
 ![artist_fragment](https://user-images.githubusercontent.com/18017952/43677376-ab9d3f82-9809-11e8-8c81-3e5d6b2f05b5.png)
